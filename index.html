@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Phishing Shield | AI-Powered Cybersecurity for Modern Businesses</title>
+  <meta name="description" content="Protect your organization from phishing attacks using advanced AI that detects malicious websites, emails, QR codes, SMS, and file attachments in real time." />
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300f0ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/><path d='m9 12 2 2 4-4'/></svg>" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'cyber-dark': '#030712',
+            'cyber-navy': '#070d1e',
+            'neon-cyan': '#00f0ff',
+            'neon-blue': '#0072ff',
+            'threat-red': '#ff2a5f',
+            'safe-green': '#00ff9d'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* CSS Design System for AI Phishing Shield */
+    :root {
+      --bg-dark: #030712;
+      --bg-navy: #070d1e;
+      --bg-card: rgba(11, 20, 42, 0.75);
+      --border-cyan: rgba(0, 240, 255, 0.2);
+      --neon-cyan: #00f0ff;
+      --neon-blue: #0072ff;
+      --threat-red: #ff2a5f;
+      --safe-green: #00ff9d;
+      --warning-amber: #ffb703;
+      --font-sans: 'Inter', system-ui, sans-serif;
+      --font-heading: 'Space Grotesk', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { color-scheme: dark; font-family: var(--font-sans); background-color: var(--bg-dark); color: #f8fafc; }
+    h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); letter-spacing: -0.02em; }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-dark); }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--neon-cyan); }
+
+    /* Background Grids & Glows */
+    .bg-cyber-grid {
+      background-image: 
+        linear-gradient(to right, rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .bg-radial-glow {
+      background: radial-gradient(circle at 50% 20%, rgba(0, 240, 255, 0.12) 0%, rgba(0, 114, 255, 0.06) 35%, transparent 70%);
+    }
+
+    /* Glassmorphic Panel */
+    .glass-panel {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-cyan);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-panel:hover {
+      border-color: rgba(0, 240, 255, 0.4);
+      box-shadow: 0 15px 35px -5px rgba(0, 240, 255, 0.15), inset 0 1px 0 rgba(0, 240, 255, 0.2);
+    }
+
+    /* Text Gradients */
+    .text-gradient-neon {
+      background: linear-gradient(135deg, var(--neon-cyan) 0%, #38bdf8 50%, var(--neon-blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Buttons */
+    .btn-primary-neon {
+      background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-blue) 100%);
+      color: #030712;
+      font-weight: 700;
+      font-family: var(--font-heading);
+      border: none;
+      border-radius: 12px;
+      padding: 14px 28px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .btn-primary-neon:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.7), 0 0 50px rgba(0, 114, 255, 0.4);
+      color: #000;
+    }
+
+    .btn-secondary-cyber {
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--neon-cyan);
+      font-weight: 600;
+      font-family: var(--font-heading);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 12px;
+      padding: 14px 28px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      backdrop-filter: blur(8px);
+    }
+    .btn-secondary-cyber:hover {
+      background: rgba(0, 240, 255, 0.1);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);
+      transform: translateY(-2px);
+      color: #fff;
+    }
+
+    /* Badges */
+    .badge-neon {
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--neon-cyan);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.05em;
+    }
+    .badge-threat {
+      background: rgba(255, 42, 95, 0.15);
+      border: 1px solid rgba(255, 42, 95, 0.4);
+      color: var(--threat-red);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 9999px;
+    }
+    .badge-safe {
+      background: rgba(0, 255, 157, 0.15);
+      border: 1px solid rgba(0, 255, 157, 0.4);
+      color: var(--safe-green);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 9999px;
+    }
+
+    /* Animations */
+    @keyframes shield-pulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.4)); }
+      50% { transform: scale(1.05); filter: drop-shadow(0 0 30px rgba(0, 240, 255, 0.8)); }
+    }
+    .animate-shield { animation: shield-pulse 3s ease-in-out infinite; }
+
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin-slow { animation: spin-slow 8s linear infinite; }
+
+    .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="relative min-h-screen">
+
+  <!-- HTML5 Canvas Animated Network Background -->
+  <canvas id="cyber-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-60"></canvas>
+
+  <!-- Navbar -->
+  <header id="main-header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 py-5 bg-transparent">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-3 text-decoration-none">
+        <div class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-400/50 shadow-[0_0_15px_rgba(0,240,255,0.3)]">
+          <svg class="w-6 h-6 text-cyan-400 animate-shield" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-extrabold text-lg sm:text-xl text-white font-[Space_Grotesk]">
+            AI PHISHING <span class="text-cyan-400">SHIELD</span>
+          </span>
+          <span class="text-[9px] font-mono tracking-widest text-cyan-400/80 uppercase">NEXT-GEN CYBER DEFENSE</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+        <a href="#services" class="hover:text-cyan-400 transition-colors">Services</a>
+        <a href="#how-it-works" class="hover:text-cyan-400 transition-colors">How It Works</a>
+        <a href="#features" class="hover:text-cyan-400 transition-colors">Features</a>
+        <a href="#live-scanner" class="hover:text-cyan-400 transition-colors">Live Scanner</a>
+        <a href="#dashboard" class="hover:text-cyan-400 transition-colors">Live Intelligence</a>
+      </nav>
+
+      <!-- Header Actions -->
+      <div class="hidden lg:flex items-center gap-4">
+        <div class="badge-neon py-1 px-3">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-xs">AI ENGINE ONLINE</span>
+        </div>
+        <button onclick="openModal('demo')" class="btn-secondary-cyber text-xs py-2.5 px-4">Request Demo</button>
+        <button onclick="openModal('get-started')" class="btn-primary-neon text-xs py-2.5 px-5">
+          Get Started
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative pt-32 pb-20 overflow-hidden bg-radial-glow z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="flex justify-center text-center mb-6">
+        <div class="badge-neon py-1.5 px-4 shadow-[0_0_20px_rgba(0,240,255,0.2)]">
+          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span class="text-xs sm:text-sm font-bold tracking-wide">ZERO-DAY PHISHING DEFENSE PLATFORM</span>
+        </div>
+      </div>
+
+      <div class="text-center max-w-4xl mx-auto space-y-6">
+        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.1] font-[Space_Grotesk]">
+          AI-Powered Cybersecurity for <span class="text-gradient-neon">Modern Businesses</span>
+        </h1>
+
+        <p class="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+          Protect your organization from phishing attacks using advanced AI that detects malicious websites, emails, QR codes, SMS, and file attachments in real time.
+        </p>
+
+        <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button onclick="openModal('get-started')" class="btn-primary-neon text-base py-4 px-8 w-full sm:w-auto">
+            Get Started
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </button>
+          <button onclick="openModal('demo')" class="btn-secondary-cyber text-base py-4 px-8 w-full sm:w-auto">
+            Request Demo
+          </button>
+        </div>
+      </div>
+
+      <!-- Interactive Quick Vector Scanner Sandbox -->
+      <div id="live-scanner" class="mt-14 max-w-5xl mx-auto glass-panel p-6 sm:p-8 relative">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-cyan-500/20">
+          <div>
+            <div class="badge-neon mb-2">INTERACTIVE REAL-TIME AI DEMO</div>
+            <h3 class="text-2xl font-bold text-white font-[Space_Grotesk]">Test AI Phishing Shield Vector Scanner</h3>
+          </div>
+          <div class="text-xs font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-500/30 px-3 py-1.5 rounded-lg">
+            MODEL: NEURAL-PHISH-V4.2
+          </div>
+        </div>
+
+        <!-- Scanner Vector Tabs -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-6" id="scanner-tabs">
+          <button onclick="switchScannerTab('url')" id="tab-url" class="tab-btn active p-3 rounded-xl font-medium text-xs sm:text-sm bg-cyan-500/20 text-cyan-300 border border-cyan-400 text-center">URL / Website</button>
+          <button onclick="switchScannerTab('email')" id="tab-email" class="tab-btn p-3 rounded-xl font-medium text-xs sm:text-sm bg-slate-900/60 text-slate-400 border border-slate-800 text-center">Email Security</button>
+          <button onclick="switchScannerTab('qr')" id="tab-qr" class="tab-btn p-3 rounded-xl font-medium text-xs sm:text-sm bg-slate-900/60 text-slate-400 border border-slate-800 text-center">QR Code</button>
+          <button onclick="switchScannerTab('sms')" id="tab-sms" class="tab-btn p-3 rounded-xl font-medium text-xs sm:text-sm bg-slate-900/60 text-slate-400 border border-slate-800 text-center">SMS Phishing</button>
+          <button onclick="switchScannerTab('file')" id="tab-file" class="tab-btn p-3 rounded-xl font-medium text-xs sm:text-sm bg-slate-900/60 text-slate-400 border border-slate-800 text-center">File Attachment</button>
+        </div>
+
+        <!-- Presets Buttons -->
+        <div class="flex items-center gap-2 mb-4 flex-wrap" id="preset-buttons-container">
+          <!-- Dynamically populated presets -->
+        </div>
+
+        <!-- Input field -->
+        <div class="mb-6 relative">
+          <input type="text" id="scanner-input" class="w-full bg-[#070d1e] border border-cyan-500/30 rounded-xl py-3.5 px-4 text-sm text-slate-100 font-mono focus:outline-none focus:border-cyan-400" />
+          <button onclick="runAIScan()" id="scan-submit-btn" class="btn-primary-neon text-xs py-2.5 px-6 mt-3 sm:mt-0 sm:absolute sm:right-2 sm:top-1.5">
+            Scan Vector Now
+          </button>
+        </div>
+
+        <!-- Scan Output Result Container -->
+        <div id="scan-output" class="hidden"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section id="services" class="py-24 relative bg-[#070d1e]/60 border-t border-slate-800 z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <div class="badge-neon mb-3">360-DEGREE THREAT COVERAGE</div>
+        <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight font-[Space_Grotesk]">
+          Comprehensive <span class="text-gradient-neon">AI Security Services</span>
+        </h2>
+        <p class="mt-4 text-slate-300 text-base sm:text-lg">
+          Eight interconnected AI threat detection layers built to safeguard your employees, digital assets, and enterprise credentials.
+        </p>
+      </div>
+
+      <!-- 8 Services Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="services-grid">
+        <!-- Javascript dynamically inserts 8 service cards -->
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section id="how-it-works" class="py-24 relative bg-[#030712] z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <div class="badge-neon mb-3">FOUR-STEP THREAT MITIGATION</div>
+        <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight font-[Space_Grotesk]">
+          How <span class="text-gradient-neon">AI Phishing Shield</span> Works
+        </h2>
+        <p class="mt-4 text-slate-300 text-base sm:text-lg">
+          From raw input submission to real-time AI risk score calculation and automated threat containment.
+        </p>
+      </div>
+
+      <!-- 4 Steps Timeline -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div class="glass-panel p-6 border-cyan-500/30">
+          <span class="font-mono text-xs font-bold text-cyan-400 bg-cyan-950 px-2.5 py-1 rounded">STEP 01</span>
+          <h3 class="text-xl font-bold text-white mt-4 font-[Space_Grotesk]">Submit Content</h3>
+          <p class="text-xs text-cyan-400 font-semibold mt-1">Submit a URL, email, QR code, SMS, or file.</p>
+          <p class="text-xs text-slate-400 mt-3 leading-relaxed">Instant API ingestion across email gateways, mobile webhooks, browser proxy extensions, or manual CISO portal uploads.</p>
+        </div>
+
+        <div class="glass-panel p-6 border-cyan-500/30">
+          <span class="font-mono text-xs font-bold text-cyan-400 bg-cyan-950 px-2.5 py-1 rounded">STEP 02</span>
+          <h3 class="text-xl font-bold text-white mt-4 font-[Space_Grotesk]">AI Content Analysis</h3>
+          <p class="text-xs text-cyan-400 font-semibold mt-1">AI analyzes the content.</p>
+          <p class="text-xs text-slate-400 mt-3 leading-relaxed">Runs NLP coercion check, visual layout matching, typosquatting domain inspection, and micro-VM payload sandbox execution.</p>
+        </div>
+
+        <div class="glass-panel p-6 border-cyan-500/30">
+          <span class="font-mono text-xs font-bold text-cyan-400 bg-cyan-950 px-2.5 py-1 rounded">STEP 03</span>
+          <h3 class="text-xl font-bold text-white mt-4 font-[Space_Grotesk]">Real-Time Risk Score</h3>
+          <p class="text-xs text-cyan-400 font-semibold mt-1">Receive a real-time risk score.</p>
+          <p class="text-xs text-slate-400 mt-3 leading-relaxed">Calculates an explainable 0 to 100 threat confidence score with granular indicators of compromise (IOCs) in sub-50 milliseconds.</p>
+        </div>
+
+        <div class="glass-panel p-6 border-cyan-500/30">
+          <span class="font-mono text-xs font-bold text-cyan-400 bg-cyan-950 px-2.5 py-1 rounded">STEP 04</span>
+          <h3 class="text-xl font-bold text-white mt-4 font-[Space_Grotesk]">Automated Protection</h3>
+          <p class="text-xs text-cyan-400 font-semibold mt-1">Get protection recommendations.</p>
+          <p class="text-xs text-slate-400 mt-3 leading-relaxed">Actionable mitigation advice, instant mailbox quarantine, session credential revocation, and automated domain takedown dispatches.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-24 relative bg-[#070d1e]/80 border-t border-b border-slate-800 z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <div class="badge-neon mb-3">ENTERPRISE CORE CAPABILITIES</div>
+        <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight font-[Space_Grotesk]">
+          Engineered for <span class="text-gradient-neon">Uncompromising Security</span>
+        </h2>
+        <p class="mt-4 text-slate-300 text-base sm:text-lg">
+          Eight core architecture pillars built to deliver bulletproof protection and enterprise compliance.
+        </p>
+      </div>
+
+      <!-- 8 Features Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="features-grid">
+        <!-- Javascript inserts 8 feature cards -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Live CISO Dashboard Telemetry -->
+  <section id="dashboard" class="py-24 relative bg-[#030712] z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <div class="badge-neon mb-3">LIVE THREAT TELEMETRY</div>
+        <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight font-[Space_Grotesk]">
+          Interactive <span class="text-gradient-neon">CISO Control Dashboard</span>
+        </h2>
+        <p class="mt-4 text-slate-300 text-base sm:text-lg">
+          Simulated real-time ops dashboard displaying blocked threat events and protection metrics.
+        </p>
+      </div>
+
+      <div class="glass-panel overflow-hidden border-cyan-500/30">
+        <div class="bg-[#070d1e] p-4 border-b border-cyan-500/20 flex items-center justify-between">
+          <span class="font-mono text-xs text-white">AI SHIELD OPS STREAM // ACME-CORP-TENANT</span>
+          <button onclick="triggerDashboardUpdate()" class="btn-secondary-cyber text-xs py-1 px-3">
+            Stream Refresh
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 border-b border-slate-800 bg-slate-950/60 p-4 divide-x divide-slate-800 font-mono text-center">
+          <div><div class="text-xs text-slate-400">THREATS BLOCKED TODAY</div><div class="text-2xl font-bold text-cyan-400 mt-1">14,982</div></div>
+          <div><div class="text-xs text-slate-400">PROTECTED ENDPOINTS</div><div class="text-2xl font-bold text-white mt-1">128,400</div></div>
+          <div><div class="text-xs text-slate-400">AVG INSPECTION SPEED</div><div class="text-2xl font-bold text-emerald-400 mt-1">14 ms</div></div>
+          <div><div class="text-xs text-slate-400">PHISHING SUCCESS RATE</div><div class="text-2xl font-bold text-rose-400 mt-1">0.00%</div></div>
+        </div>
+
+        <div class="p-6 space-y-3" id="telemetry-logs-container">
+          <!-- Logs populated by JS -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-[#030712] border-t border-cyan-500/20 py-12 z-10 relative text-xs text-slate-400 font-mono">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div>© 2026 AI Phishing Shield Inc. All rights reserved. AI-Powered Cyber Protection.</div>
+      <div class="flex items-center gap-4">
+        <span>SOC2 Type II</span> • <span>ISO27001</span> • <span>GDPR Compliant</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Interactive Modal -->
+  <div id="demo-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="glass-panel max-w-lg w-full p-6 relative border-cyan-500/40 bg-[#070d1e]">
+      <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold">✕</button>
+      <h3 class="text-2xl font-bold text-white font-[Space_Grotesk] mb-2" id="modal-title">Request Enterprise Demo</h3>
+      <p class="text-xs text-slate-300 mb-6">Schedule a 1-on-1 walk-through with our cybersecurity architects.</p>
+
+      <form onsubmit="handleModalSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-mono mb-1">WORK EMAIL</label>
+          <input type="email" required placeholder="ciso@company.com" class="w-full bg-[#030712] border border-cyan-500/30 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-cyan-400" />
+        </div>
+        <div>
+          <label class="block text-xs font-mono mb-1">COMPANY NAME</label>
+          <input type="text" required placeholder="Acme Global Inc" class="w-full bg-[#030712] border border-cyan-500/30 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-cyan-400" />
+        </div>
+        <button type="submit" class="btn-primary-neon w-full justify-center py-3 text-xs mt-2">
+          Confirm Request
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript logic -->
+  <script>
+    // Canvas Particle Network Background
+    const canvas = document.getElementById('cyber-canvas');
+    const ctx = canvas.getContext('2d');
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const particles = Array.from({ length: 50 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      radius: Math.random() * 1.5 + 1
+    }));
+
+    function drawCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(0, 240, 255, ${0.15 * (1 - dist / 150)})`;
+            ctx.stroke();
+          }
+        }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.6)';
+        ctx.fill();
+      });
+      requestAnimationFrame(drawCanvas);
+    }
+    drawCanvas();
+
+    // Scanner presets data
+    const PRESETS = {
+      url: { text: "http://paypaI-verify-login.com.auth-update.xyz/login.php", threat: true },
+      email: { text: "From: CEO Executive <executive-office@company-domain-update.net>\nSubject: URGENT: Wire Transfer Approval Needed Immediately", threat: true },
+      qr: { text: "QR Code Data: http://fastpay-parking-zone.top/pay?session=98213", threat: true },
+      sms: { text: "USPS Notice: Package delivery failed due to address error. Update details immediately: http://usps-redelivery-update.com/track", threat: true },
+      file: { text: "Filename: Invoice_March2026.pdf.exe (Embedded VBA Macro Payload)", threat: true }
+    };
+
+    let currentTab = 'url';
+    function switchScannerTab(tabKey) {
+      currentTab = tabKey;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-cyan-500/20', 'text-cyan-300', 'border-cyan-400');
+        btn.classList.add('bg-slate-900/60', 'text-slate-400', 'border-slate-800');
+      });
+      const activeBtn = document.getElementById('tab-' + tabKey);
+      activeBtn.classList.add('bg-cyan-500/20', 'text-cyan-300', 'border-cyan-400');
+      document.getElementById('scanner-input').value = PRESETS[tabKey].text;
+      document.getElementById('scan-output').classList.add('hidden');
+    }
+    switchScannerTab('url');
+
+    function runAIScan() {
+      const inputVal = document.getElementById('scanner-input').value;
+      const outputDiv = document.getElementById('scan-output');
+      outputDiv.classList.remove('hidden');
+      outputDiv.innerHTML = `
+        <div class="p-6 rounded-xl border border-cyan-500/40 bg-cyan-950/20 space-y-4 fade-in">
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs text-cyan-400 font-bold">ANALYZING NEURAL WEIGHINGS...</span>
+            <span class="font-mono text-xs text-rose-400 font-bold">RISK SCORE: 96/100 [CRITICAL THREAT]</span>
+          </div>
+          <div class="text-sm font-bold text-white">Verdict: High-Risk Phishing Vector Detected</div>
+          <div class="text-xs text-slate-300">Target matches known typosquatting patterns, suspicious TLD extensions, and NLP social engineering urgency triggers.</div>
+          <div class="text-xs font-mono text-emerald-400 pt-2">RECOMMENDATION: Quarantine content and block destination domain on corporate firewall.</div>
+        </div>
+      `;
+    }
+
+    // Populate 8 Services
+    const SERVICES = [
+      { title: "Phishing URL Detection", desc: "Deep link analysis, homoglyph parsing, and webpage visual similarity matching in sub-50ms." },
+      { title: "Email Security", desc: "Advanced NLP intent scoring, VIP executive impersonation defense, and DMARC alignment." },
+      { title: "QR Code Scanner", desc: "Quishing defense uncovering hidden malicious URLs and obfuscated payload redirects." },
+      { title: "SMS Phishing Detection", desc: "Smishing defense protecting mobile workforces from rogue SMS links and text traps." },
+      { title: "File Attachment Scanner", desc: "Sandbox extraction of weaponized PDFs, Office macros, and executable payloads." },
+      { title: "Browser Protection", desc: "Extension and inline proxy preventing credential theft on untrusted cloned pages." },
+      { title: "Threat Intelligence", desc: "Global live feed updating millions of phishing indicators every second from dark web sources." },
+      { title: "AI Risk Scoring", desc: "Explainable 0 to 100 risk confidence score with granular indicators of compromise." }
+    ];
+
+    const servicesGrid = document.getElementById('services-grid');
+    SERVICES.forEach(s => {
+      servicesGrid.innerHTML += `
+        <div class="glass-panel p-6 flex flex-col justify-between group">
+          <div>
+            <div class="text-xs font-mono text-cyan-400 mb-2">ACTIVE LAYER</div>
+            <h3 class="text-lg font-bold text-white mb-2 font-[Space_Grotesk] group-hover:text-cyan-300 transition-colors">${s.title}</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">${s.desc}</p>
+          </div>
+          <div class="pt-4 mt-4 border-t border-slate-800 text-xs font-mono text-cyan-400">Sub-50ms SLA</div>
+        </div>
+      `;
+    });
+
+    // Populate 8 Features
+    const FEATURES = [
+      { title: "Real-time AI Detection", desc: "Uses continuous neural inference to identify zero-day phishing sites before feeds log them." },
+      { title: "Privacy First", desc: "Zero data retention policy with local zero-knowledge parsing and memory-only analysis." },
+      { title: "Fast Threat Analysis", desc: "Distributed edge processing delivers instant risk scores without network slowdowns." },
+      { title: "Cloud-Based Security", desc: "Cloud-native architecture deploys seamlessly via API webhooks in under 5 minutes." },
+      { title: "Easy Dashboard", desc: "Single-pane CISO control center offering real-time threat graphs and 1-click remediation." },
+      { title: "Enterprise Security", desc: "Full SOC2 Type II, ISO27001, HIPAA, and GDPR compliance with SAML / Okta SSO." },
+      { title: "Detailed Reports", desc: "Generates detailed PDF summaries and SIEM-ready JSON forensic reports for compliance." },
+      { title: "24/7 Protection", desc: "Autonomous AI containment operates 24/7/365, intercepting midnight attacks silently." }
+    ];
+
+    const featuresGrid = document.getElementById('features-grid');
+    FEATURES.forEach(f => {
+      featuresGrid.innerHTML += `
+        <div class="glass-panel p-6">
+          <div class="text-xs font-mono text-cyan-400 mb-2">FEATURE ACTIVE</div>
+          <h3 class="text-lg font-bold text-white mb-1 font-[Space_Grotesk]">${f.title}</h3>
+          <p class="text-xs text-slate-400 leading-relaxed mt-2">${f.desc}</p>
+        </div>
+      `;
+    });
+
+    // Telemetry Logs
+    const telemetryContainer = document.getElementById('telemetry-logs-container');
+    const LOGS = [
+      { id: "LOG-981", vector: "Phishing URL", target: "http://auth-verify-chase-update.net/login", action: "BLOCKED" },
+      { id: "LOG-980", vector: "Email BEC", target: "CEO Wire Transfer Request (Spoofed Header)", action: "QUARANTINED" },
+      { id: "LOG-979", vector: "SMS Smishing", target: "USPS Redelivery Notice (Malicious TLD)", action: "BLOCKED" },
+      { id: "LOG-978", vector: "File Attachment", target: "Invoice_March2026.pdf.exe (VBA Payload)", action: "ISOLATED" }
+    ];
+
+    function renderLogs() {
+      telemetryContainer.innerHTML = LOGS.map(l => `
+        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between text-xs font-mono">
+          <div class="flex items-center gap-3">
+            <span class="text-cyan-400 font-bold">${l.id}</span>
+            <span class="text-slate-300 font-semibold px-2 py-0.5 rounded bg-slate-800">${l.vector}</span>
+            <span class="text-slate-400 truncate max-w-xs sm:max-w-md">${l.target}</span>
+          </div>
+          <span class="badge-threat font-bold">${l.action}</span>
+        </div>
+      `).join('');
+    }
+    renderLogs();
+
+    function triggerDashboardUpdate() {
+      LOGS.unshift({
+        id: `LOG-${Math.floor(982 + Math.random() * 50)}`,
+        vector: "Phishing URL",
+        target: `http://login-auth-pass-${Math.floor(Math.random() * 999)}.xyz/verify`,
+        action: "BLOCKED"
+      });
+      LOGS.pop();
+      renderLogs();
+    }
+
+    // Modal Control
+    function openModal(mode) {
+      document.getElementById('modal-title').innerText = mode === 'demo' ? 'Request Enterprise Demo' : 'Get Started with AI Shield';
+      document.getElementById('demo-modal').classList.remove('hidden');
+    }
+    function closeModal() {
+      document.getElementById('demo-modal').classList.add('hidden');
+    }
+    function handleModalSubmit(e) {
+      e.preventDefault();
+      alert("Access Request Confirmed! Our security deployment team has dispatched credentials to your email.");
+      closeModal();
+    }
+  </script>
+</body>
+</html>
