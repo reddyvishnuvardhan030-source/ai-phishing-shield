@@ -1,68 +1,69 @@
 import React, { useState } from 'react';
 import {
-  UploadCloud,
+  Link2,
   Cpu,
-  Gauge,
-  ShieldCheck,
+  ShieldAlert,
+  FileText,
   CheckCircle2,
   ArrowRight,
+  ArrowDown,
   Zap,
-  Lock,
-  Layers
+  Layers,
+  Sparkles
 } from 'lucide-react';
 
 const STEPS_DATA = [
   {
     step: '01',
-    title: 'Submit Content Vector',
-    subtitle: 'Submit a URL, email, QR code, SMS, or file.',
-    desc: 'Input suspicious items via browser extension, inline API, email gateway rule, or manual submission scanner widget.',
-    icon: UploadCloud,
+    title: 'Enter URL',
+    subtitle: 'Submit any link, URL, or data string',
+    desc: 'Input suspicious web links, email content, QR code payload strings, or text messages directly into the scanner or via browser extension.',
+    icon: Link2,
     details: [
-      'Automated API ingestion for MS 365, Google Workspace & Slack',
-      'Drag-and-drop file support for PDFs, DOCX, and EXEs',
-      'Instant mobile QR & SMS webhook integration',
+      'Accepts raw website links (e.g., https://paypal-sercuity-login.xyz)',
+      'Supports QR code parsed payload strings & short URLs',
+      'Instant mobile SMS & email gateway webhook ingestion',
     ],
-    codeSnippet: `POST /api/v1/scan/inspect\n{\n  "vector": "email_attachment",\n  "target": "Invoice_March2026.pdf",\n  "strict_mode": true\n}`,
+    codeSnippet: `INPUT RECEIVED:\n-------------------------\nVector: URL / Link Inspection\nTarget: https://paypal-sercuity-login.xyz\nStatus: Pending Neural Analysis`,
   },
   {
     step: '02',
-    title: 'AI Multi-Layer Analysis',
-    subtitle: 'AI analyzes the content.',
-    desc: 'Our deep neural networks run natural language processing, visual layout comparison, DNS reputation, and micro-VM sandbox execution.',
+    title: 'AI Analysis',
+    subtitle: 'Deep neural multi-vector scanning',
+    desc: 'Our deep neural networks run natural language processing, visual DOM layout comparison, DNS reputation, and homoglyph typosquatting checks in under 45ms.',
     icon: Cpu,
     details: [
-      'Computer vision matching against 500,000+ brand logos',
-      'NLP semantic sentiment & coerciveness parsing',
-      'Dynamic JavaScript redirection tracing',
+      'Homoglyph character spoofing parser (paypaI vs paypal)',
+      'Visual logo & DOM similarity graph matching',
+      'Dynamic JavaScript redirect & TLD reputation inspection (.xyz / .top)',
     ],
-    codeSnippet: `ANALYZING NEURAL WEIGHINGS...\n[+] Homoglyph Check: FAILED (Spoofed Char)\n[+] SSL Authority: UNTRUSTED FREE CERT\n[+] OCR Logo Match: PayPal 99.4% Similarity`,
+    codeSnippet: `AI ANALYZING PIPELINE...\n[+] Typosquatting Check: FAILED (Spoofed Char 'I')\n[+] TLD Reputation: HIGH RISK UNTRUSTED (.xyz)\n[+] Form Analysis: Password Harvesting Script Detected`,
   },
   {
     step: '03',
-    title: 'Real-Time Risk Scoring',
-    subtitle: 'Receive a real-time risk score.',
-    desc: 'Receive an instant 0 to 100 risk confidence metric with granular indicators of compromise (IOCs) in sub-50 milliseconds.',
-    icon: Gauge,
+    title: 'Threat Detection',
+    subtitle: '1-100 Risk Scoring & Threat Flagging',
+    desc: 'The agent calculates a precise Threat Index from 1 (Safest) to 100 (Critical Threat) and flags indicators of compromise (IOCs).',
+    icon: ShieldAlert,
     details: [
-      'Sub-50ms total response latency',
-      'Explainable threat telemetry for SOC analyst review',
-      'Automated threat categorization (Phishing, Malware, BEC)',
+      'Sub-50ms execution latency',
+      'Explainable AI reasons in plain, clear English',
+      'Categorized threat severity (CRITICAL PHISHING RISK)',
     ],
-    codeSnippet: `THREAT ASSESSMENT REPORT\n-------------------------\nFinal Risk Index: 96/100 [CRITICAL]\nCategory: Typosquatting / Credential Harvester\nConfidence Level: 99.98%`,
+    codeSnippet: `THREAT SCORE GENERATED\n-------------------------\nFinal Risk Index: 96 / 100 [CRITICAL]\nCategory: Typosquatting Credential Harvester\nConfidence Level: 99.98%`,
   },
   {
     step: '04',
-    title: 'Automated Protection',
-    subtitle: 'Get protection recommendations.',
-    desc: 'Get actionable mitigation advice, auto-quarantine malicious emails, revoke compromised session tokens, and block dangerous endpoints.',
-    icon: ShieldCheck,
+    title: 'Security Report',
+    subtitle: 'Clear English explanation & remediation',
+    desc: 'Generates a comprehensive security report detailing why the item is dangerous and listing actionable safe remediation steps.',
+    icon: FileText,
     details: [
-      'Automated email mailbox quarantine & deletion',
-      'SIEM / SOAR Webhook alerts dispatched instantly',
-      '1-Click CISO Domain Takedown request dispatch',
+      'Plain English threat breakdown for non-technical users',
+      'Step-by-step recommended safe actions',
+      'Automated SIEM logging & DNS firewall block dispatch',
     ],
-    codeSnippet: `ACTION TAKEN: QUARANTINED\n[✓] User Notification Sent\n[✓] Domain Blocked on Enterprise Firewall\n[✓] SIEM Incident Created #INC-9821`,
+    codeSnippet: `SECURITY REPORT COMPLETED\n[✓] User Warning Generated\n[✓] Safe Actions: Do not enter passwords • Block domain\n[✓] Firewall & DNS Rule Applied #RULE-8891`,
   },
 ];
 
@@ -77,24 +78,59 @@ export default function HowItWorksSection() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-14">
           <div className="badge-neon mb-3">
             <Layers className="w-3.5 h-3.5" />
-            <span>FOUR-STEP THREAT MITIGATION</span>
+            <span>EXPLICIT WORKFLOW PIPELINE</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight font-[Space_Grotesk]">
             How <span className="text-gradient-neon">AI Phishing Shield</span> Works
           </h2>
           <p className="mt-4 text-slate-300 text-base sm:text-lg">
-            From raw input submission to instant automated containment — inspect how our neural engine neutralizes attacks in milliseconds.
+            A simple, transparent 4-stage pipeline that converts raw web links into instant threat intelligence.
           </p>
         </div>
 
-        {/* 4 Steps Timeline Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-12 relative">
-          {/* Connector Line behind steps (desktop) */}
-          <div className="hidden lg:block absolute top-1/2 left-10 right-10 h-0.5 bg-gradient-to-r from-cyan-500/20 via-cyan-400/60 to-blue-600/20 -translate-y-6 z-0" />
+        {/* Visual Flow Diagram Banner */}
+        <div className="glass-panel p-6 mb-12 border-cyan-500/40 bg-[#070d1e]/90 rounded-2xl shadow-[0_0_30px_rgba(0,240,255,0.15)]">
+          <div className="text-xs font-mono text-cyan-400 font-bold uppercase tracking-wider text-center mb-6">
+            ⚡ Threat Neutralization Sequence Flow
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center text-center">
+            {STEPS_DATA.map((s, idx) => {
+              const Icon = s.icon;
+              const isActive = activeStep === idx;
+              return (
+                <React.Fragment key={idx}>
+                  <div
+                    onClick={() => setActiveStep(idx)}
+                    className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col items-center gap-2 ${
+                      isActive
+                        ? 'bg-cyan-950/60 border-cyan-400 text-cyan-300 shadow-[0_0_20px_rgba(0,240,255,0.3)] scale-105'
+                        : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${isActive ? 'bg-cyan-500/20 border-cyan-400 text-cyan-400' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs font-mono text-slate-400">Step {s.step}</span>
+                    <h4 className="text-sm font-bold text-white font-[Space_Grotesk]">{s.title}</h4>
+                  </div>
+
+                  {idx < STEPS_DATA.length - 1 && (
+                    <div className="hidden md:flex items-center justify-center text-cyan-400">
+                      <ArrowRight className="w-6 h-6 animate-pulse" />
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 4 Steps Detailed Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-12 relative">
           {STEPS_DATA.map((item, idx) => {
             const Icon = item.icon;
             const isActive = activeStep === idx;
@@ -104,11 +140,10 @@ export default function HowItWorksSection() {
                 onClick={() => setActiveStep(idx)}
                 className={`glass-panel p-6 cursor-pointer relative z-10 transition-all duration-300 ${
                   isActive
-                    ? 'border-cyan-400 bg-slate-900/90 shadow-[0_0_25px_rgba(0,240,255,0.25)] -translate-y-2'
-                    : 'border-slate-800 hover:border-slate-700 opacity-80 hover:opacity-100'
+                    ? 'border-cyan-400 bg-slate-900/95 shadow-[0_0_25px_rgba(0,240,255,0.25)] -translate-y-2'
+                    : 'border-slate-800 hover:border-slate-700 opacity-80 hover:opacity-100 bg-[#070d1e]/80'
                 }`}
               >
-                {/* Step Number Badge */}
                 <div className="flex items-center justify-between mb-4">
                   <span
                     className={`font-mono text-sm font-bold px-3 py-1 rounded-lg border ${
@@ -134,19 +169,19 @@ export default function HowItWorksSection() {
                   {item.title}
                 </h3>
                 <p className="text-xs font-semibold text-cyan-400 mb-3">{item.subtitle}</p>
-                <p className="text-xs text-slate-400 leading-relaxed">{item.desc}</p>
+                <p className="text-xs text-slate-300 leading-relaxed">{item.desc}</p>
               </div>
             );
           })}
         </div>
 
         {/* Detailed Interactive Showcase Box for Active Step */}
-        <div className="glass-panel p-6 sm:p-8 border-cyan-500/30 bg-slate-950/80">
+        <div className="glass-panel p-6 sm:p-8 border-cyan-500/30 bg-slate-950/90">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 text-xs font-mono text-cyan-400 bg-cyan-950/60 border border-cyan-500/30 px-3 py-1 rounded-full">
                 <Zap className="w-3.5 h-3.5" />
-                <span>ACTIVE STAGE: STEP {STEPS_DATA[activeStep].step}</span>
+                <span>ACTIVE STAGE: STEP {STEPS_DATA[activeStep].step} — {STEPS_DATA[activeStep].title}</span>
               </div>
               <h3 className="text-2xl sm:text-3xl font-bold text-white font-[Space_Grotesk]">
                 {STEPS_DATA[activeStep].title}
@@ -167,9 +202,9 @@ export default function HowItWorksSection() {
               <div className="pt-4 flex items-center gap-4">
                 <button
                   onClick={() => setActiveStep((prev) => (prev + 1) % STEPS_DATA.length)}
-                  className="btn-primary-neon text-xs py-2.5 px-5"
+                  className="btn-primary-neon text-xs py-2.5 px-5 flex items-center gap-2"
                 >
-                  Next Step
+                  <span>Advance Pipeline Stage</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -183,10 +218,10 @@ export default function HowItWorksSection() {
                   <div className="w-3 h-3 rounded-full bg-amber-500/80" />
                   <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
                   <span className="text-[11px] font-mono text-slate-400 ml-2">
-                    ai-engine-telemetry.log
+                    pipeline_stage_{STEPS_DATA[activeStep].step}.log
                   </span>
                 </div>
-                <span className="text-[10px] font-mono text-cyan-400">LATENCY: 12ms</span>
+                <span className="text-[10px] font-mono text-cyan-400">STATUS: PROCESSED</span>
               </div>
               <pre className="p-5 text-xs font-mono text-cyan-300/90 whitespace-pre-wrap leading-relaxed overflow-x-auto">
                 {STEPS_DATA[activeStep].codeSnippet}
@@ -198,3 +233,4 @@ export default function HowItWorksSection() {
     </section>
   );
 }
+

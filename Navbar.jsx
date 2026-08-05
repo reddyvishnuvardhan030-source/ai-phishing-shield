@@ -46,6 +46,10 @@ export default function Navbar({ onOpenDemoModal }) {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+          <a href="#ai-agent" className="hover:text-cyan-400 transition-colors flex items-center gap-1.5 text-cyan-300 font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            AI Agent
+          </a>
           <a href="#services" className="hover:text-cyan-400 transition-colors">
             Services
           </a>
@@ -107,6 +111,13 @@ export default function Navbar({ onOpenDemoModal }) {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#070d1e]/95 border-b border-cyan-500/30 px-6 py-6 space-y-4 fade-in">
+          <a
+            href="#ai-agent"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block text-cyan-300 font-bold hover:text-cyan-400 text-lg"
+          >
+            🤖 AI Security Agent
+          </a>
           <a
             href="#services"
             onClick={() => setMobileMenuOpen(false)}
