@@ -3,6 +3,7 @@ import CyberBackground from './components/CyberBackground.jsx';
 import Navbar from './components/Navbar.jsx';
 import Hero from './components/Hero.jsx';
 import StatsSection from './components/StatsSection.jsx';
+import AIAgentSection from './components/AIAgentSection.jsx';
 import ServicesSection from './components/ServicesSection.jsx';
 import HowItWorksSection from './components/HowItWorksSection.jsx';
 import FeaturesSection from './components/FeaturesSection.jsx';
@@ -30,6 +31,7 @@ export default function App() {
       <main className="relative z-10">
         <Hero onOpenDemoModal={handleOpenDemoModal} />
         <StatsSection />
+        <AIAgentSection />
         <ServicesSection />
         <HowItWorksSection />
         <FeaturesSection />
@@ -47,4 +49,5 @@ export default function App() {
     </div>
   );
 }
+
 
