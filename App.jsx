@@ -6,6 +6,7 @@ import StatsSection from './components/StatsSection.jsx';
 import AIAgentSection from './components/AIAgentSection.jsx';
 import ServicesSection from './components/ServicesSection.jsx';
 import HowItWorksSection from './components/HowItWorksSection.jsx';
+import ArchitectureFlowSection from './components/ArchitectureFlowSection.jsx';
 import FeaturesSection from './components/FeaturesSection.jsx';
 import LiveDashboardDemo from './components/LiveDashboardDemo.jsx';
 import Footer from './components/Footer.jsx';
@@ -34,6 +35,7 @@ export default function App() {
         <AIAgentSection />
         <ServicesSection />
         <HowItWorksSection />
+        <ArchitectureFlowSection />
         <FeaturesSection />
         <LiveDashboardDemo />
       </main>
@@ -49,5 +51,6 @@ export default function App() {
     </div>
   );
 }
+
 
 
