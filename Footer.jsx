@@ -75,9 +75,9 @@ export default function Footer({ onOpenDemoModal }) {
               <li><a href="#services" className="hover:text-cyan-400 transition-colors">🔗 URL Scanner</a></li>
               <li><a href="#services" className="hover:text-cyan-400 transition-colors">📧 Email Scanner</a></li>
               <li><a href="#services" className="hover:text-cyan-400 transition-colors">📱 QR Code Scanner</a></li>
-              <li><a href="#services" className="hover:text-cyan-400 transition-colors">🤖 AI Threat Analysis</a></li>
-              <li><a href="#services" className="hover:text-cyan-400 transition-colors">📊 Risk Dashboard</a></li>
-              <li><a href="#services" className="hover:text-cyan-400 transition-colors">🛡️ Browser Protection</a></li>
+              <li><a href="#services" className="hover:text-cyan-400 transition-colors">🧠 AI Threat Analysis</a></li>
+              <li><a href="#services" className="hover:text-cyan-400 transition-colors">🌐 Domain Intelligence</a></li>
+              <li><a href="#services" className="hover:text-cyan-400 transition-colors">⚡ Live Threat Detection</a></li>
             </ul>
           </div>
 
@@ -99,7 +99,7 @@ export default function Footer({ onOpenDemoModal }) {
             </ul>
           </div>
 
-          {/* Compliance & Security */}
+          {/* Compliance & Contact */}
           <div className="space-y-3">
             <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">
               COMPLIANCE & CONTACT
@@ -218,4 +218,3 @@ export default function Footer({ onOpenDemoModal }) {
     </footer>
   );
 }
-

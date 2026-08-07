@@ -3,12 +3,13 @@ import {
   Globe,
   Mail,
   QrCode,
-  Bot,
-  BarChart3,
-  Shield,
+  Brain,
+  Database,
+  Zap,
   ArrowRight,
   CheckCircle,
-  X
+  X,
+  Shield
 } from 'lucide-react';
 
 const SERVICES_DATA = [
@@ -16,61 +17,85 @@ const SERVICES_DATA = [
     id: 'url-scanner',
     title: '🔗 URL Scanner',
     icon: Globe,
-    shortDesc: 'Scans links for typosquatting, suspicious TLDs (.xyz, .top), and zero-day malicious login redirects.',
-    fullDesc: 'Analyzes raw domain age, SSL certificate validity, homoglyph character spoofing, dynamic JavaScript redirects, and visual DOM similarity to block dangerous phishing links instantly.',
-    metrics: 'Sub-50ms Scan Time',
+    shortDesc: 'Analyze links in real time using AI, domain reputation, SSL validation, and threat intelligence.',
+    fullDesc: 'Performs deep link inspection using AI models, WHOIS domain reputation scoring, SSL/TLS certificate validation, homoglyph character analysis, and live threat intelligence feeds to block phishing links instantly.',
+    metrics: 'Real-Time Link Inspection',
     badge: 'REAL-TIME URL GUARD',
-    features: ['Homoglyph Typosquatting Detection', 'Domain Reputational Scoring (1-100)', 'Visual Webpage Similarity Matching'],
+    features: [
+      'Homoglyph Typosquatting Detection',
+      'SSL Certificate & TLS Validation',
+      'Live Threat Intelligence Feed Matching'
+    ],
   },
   {
     id: 'email-scanner',
     title: '📧 Email Scanner',
     icon: Mail,
-    shortDesc: 'Deep NLP analysis inspecting email headers, VIP sender spoofing, and urgent social engineering tactics.',
-    fullDesc: 'Stops Executive BEC scams and spear-phishing emails. Checks SPF/DKIM/DMARC alignment, coercive language patterns, and hidden payload links inside messages.',
-    metrics: '99.98% Accuracy Rate',
+    shortDesc: 'Detect phishing emails by examining sender identity, headers, links, attachments, and suspicious language.',
+    fullDesc: 'Examines email headers (SPF, DKIM, DMARC), sender identity spoofing, coercive language patterns, malicious attachments (.exe, .vbs, .scr), and embedded hyperlinks to stop Executive BEC and phishing attacks.',
+    metrics: 'Full Header & Payload Scan',
     badge: 'INLINE MAIL DEFENSE',
-    features: ['VIP Impersonation Protection', 'Natural Language Coercion Scoring', 'Automatic Mailbox Quarantine'],
+    features: [
+      'Sender Identity & VIP Spoof Protection',
+      'Natural Language Coercion Scoring',
+      'Attachment & Link Payload Inspection'
+    ],
   },
   {
     id: 'qr-scanner',
     title: '📱 QR Code Scanner',
     icon: QrCode,
-    shortDesc: 'Decodes physical & digital QR codes (quishing) to expose hidden redirects and malicious payment pages.',
-    fullDesc: 'Protects users against tampered QR codes on parking meters, physical flyers, and phishing emails. Follows shortened URL redirect chains safely.',
-    metrics: 'Quishing Defense',
+    shortDesc: 'Decode QR codes and inspect hidden destinations before users visit them.',
+    fullDesc: 'Decodes physical flyers, parking meters, and digital QR codes (quishing). Safely unshorts multi-tier URL redirect chains to reveal and scan the ultimate target destination.',
+    metrics: 'Quishing Defense Engine',
     badge: 'QR MATRIX ENGINE',
-    features: ['Multi-tier URL Unshortening', 'Physical & Digital QR Decryption', 'Destination Safety Validation'],
+    features: [
+      'Multi-tier URL Unshortening Chain',
+      'Physical & Digital QR Image Decryption',
+      'Destination Safety Validation'
+    ],
   },
   {
     id: 'ai-threat-analysis',
-    title: '🤖 AI Threat Analysis',
-    icon: Bot,
-    shortDesc: 'Neural network threat engine that calculates risk scores (1-100) with clear English explanations.',
-    fullDesc: 'Generates explainable AI threat assessments. Converts complex threat telemetry into clear, simple English risk reasons so users understand exactly why content is dangerous.',
-    metrics: '1-100 Risk Score Engine',
+    title: '🧠 AI Threat Analysis',
+    icon: Brain,
+    shortDesc: 'Explain why a website or email is flagged with an AI-generated security report.',
+    fullDesc: 'Generates explainable AI security assessments. Converts complex threat metrics into clear, simple English risk explanations detailing exact evidence and recommended safe actions.',
+    metrics: '0-100 Risk Score Engine',
     badge: 'EXPLAINABLE AI (XAI)',
-    features: ['Clear English Risk Explanations', 'Zero-Day Threat Pattern Detection', 'Continuous Model Telemetry'],
+    features: [
+      'Clear English Risk Explanations',
+      'Zero-Day Threat Pattern Detection',
+      'Categorized Threat Severity Breakdown'
+    ],
   },
   {
-    id: 'risk-dashboard',
-    title: '📊 Risk Dashboard',
-    icon: BarChart3,
-    shortDesc: 'Centralized security dashboard tracking enterprise threat scores, blocked attacks, and SOC metrics.',
-    fullDesc: 'Provides security teams with real-time threat intelligence charts, incident timeline feeds, employee vulnerability metrics, and automated takedown reporting.',
-    metrics: 'Real-Time Telemetry',
-    badge: 'ENTERPRISE SOC HUB',
-    features: ['Live Attack Map & Telemetry', 'CISO Compliance Metric Export', 'Automated Incident Triage'],
+    id: 'domain-intelligence',
+    title: '🌐 Domain Intelligence',
+    icon: Database,
+    shortDesc: 'Check domain age, WHOIS information, DNS configuration, SSL certificate, and reputation.',
+    fullDesc: 'Retrieves raw WHOIS domain creation age, registrar ownership records, SSL/TLS certificate validity, and DNS security posture (SPF, DKIM, DMARC) to verify organizational authenticity.',
+    metrics: 'WHOIS & DNS Audit',
+    badge: 'DOMAIN REPUTATION',
+    features: [
+      'WHOIS Domain Age Tracking',
+      'SSL Certificate Issuer Verification',
+      'SPF / DKIM / DMARC DNS Audit'
+    ],
   },
   {
-    id: 'browser-protection',
-    title: '🛡️ Browser Protection',
-    icon: Shield,
-    shortDesc: 'Inline browser extension preventing credential entry on unverified or fake clone websites.',
-    fullDesc: 'Delivers real-time warnings directly inside Chrome, Edge, Safari, and Firefox. Intercepts password entry on suspicious domains to stop credential theft before it happens.',
-    metrics: 'Inline Proxy Guard',
-    badge: 'ENDPOINT PROTECTION',
-    features: ['Credential Theft Interception', 'Zero-Footprint Browser Plugin', 'Enterprise URL Policy Enforcement'],
+    id: 'live-threat-detection',
+    title: '⚡ Live Threat Detection',
+    icon: Zap,
+    shortDesc: 'Monitor URLs against continuously updated phishing and malware indicators.',
+    fullDesc: 'Continuously cross-references incoming web links and domains against real-time phishing and malware indicators (PhishTank, VirusTotal, OpenPhish) to stop zero-day attacks instantaneously.',
+    metrics: 'Continuous Intel Feed',
+    badge: 'REAL-TIME INTEL',
+    features: [
+      'PhishTank & VirusTotal Feed Sync',
+      'Blacklisted IP & Domain Interception',
+      'Automated Zero-Day Threat Mitigation'
+    ],
   },
 ];
 
@@ -200,4 +225,3 @@ export default function ServicesSection() {
     </section>
   );
 }
-
