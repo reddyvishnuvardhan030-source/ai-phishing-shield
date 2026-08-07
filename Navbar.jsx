@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Activity, Menu, X, ChevronRight, Lock, Zap } from 'lucide-react';
+import {
+  ShieldCheck,
+  Activity,
+  Menu,
+  X,
+  ChevronRight,
+  History,
+  Code2,
+  User,
+  Key
+} from 'lucide-react';
 
-export default function Navbar({ onOpenDemoModal }) {
+export default function Navbar({ onOpenDemoModal, historyCount = 0, onOpenHistoryModal, currentUser }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -39,13 +49,13 @@ export default function Navbar({ onOpenDemoModal }) {
               </span>
             </div>
             <span className="text-[10px] font-mono tracking-widest text-cyan-400/80 uppercase font-semibold">
-              NEXT-GEN CYBER DEFENSE
+              12-SERVICE CYBER DEFENSE
             </span>
           </div>
         </a>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
           <a href="#ai-agent" className="hover:text-cyan-400 transition-colors flex items-center gap-1.5 text-cyan-300 font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
             AI Agent
@@ -56,49 +66,74 @@ export default function Navbar({ onOpenDemoModal }) {
           <a href="#how-it-works" className="hover:text-cyan-400 transition-colors">
             How It Works
           </a>
-          <a href="#features" className="hover:text-cyan-400 transition-colors">
-            Features
-          </a>
           <a href="#live-scanner" className="hover:text-cyan-400 transition-colors">
-            Live Scanner
+            Scanner
           </a>
           <a href="#dashboard" className="hover:text-cyan-400 transition-colors">
-            Live Intelligence
+            Dashboard
+          </a>
+          <a href="#api-developer" className="hover:text-cyan-400 transition-colors flex items-center gap-1 text-cyan-300 font-mono text-xs">
+            <Code2 className="w-3.5 h-3.5" />
+            <span>API Docs</span>
           </a>
         </nav>
 
-        {/* Live Status & CTA Buttons */}
-        <div className="hidden lg:flex items-center gap-4">
-          <div className="badge-neon py-1.5 px-3">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <Activity className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="text-xs">AI ENGINE ONLINE</span>
-          </div>
-
+        {/* Action Controls & User Auth */}
+        <div className="hidden lg:flex items-center gap-3">
           <button
-            onClick={() => onOpenDemoModal('demo')}
-            className="btn-secondary-cyber text-xs py-2.5 px-4"
+            onClick={onOpenHistoryModal}
+            className="btn-secondary-cyber text-xs py-2 px-3 flex items-center gap-1.5 relative"
+            title="Open Scan History Log"
           >
-            Request Demo
+            <History className="w-3.5 h-3.5 text-cyan-400" />
+            <span>History</span>
+            {historyCount > 0 && (
+              <span className="bg-cyan-500 text-black font-bold font-mono text-[10px] px-1.5 py-0.2 rounded-full">
+                {historyCount}
+              </span>
+            )}
           </button>
 
+          {currentUser ? (
+            <button
+              onClick={() => onOpenDemoModal('profile')}
+              className="badge-neon py-1.5 px-3 flex items-center gap-2 cursor-pointer hover:border-cyan-400"
+            >
+              <User className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="text-xs font-mono text-slate-200">{currentUser.full_name || currentUser.email}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => onOpenDemoModal('login')}
+              className="btn-secondary-cyber text-xs py-2.5 px-3.5"
+            >
+              Log In
+            </button>
+          )}
+
           <button
-            onClick={() => onOpenDemoModal('get-started')}
-            className="btn-primary-neon text-xs py-2.5 px-5"
+            onClick={() => onOpenDemoModal('signup')}
+            className="btn-primary-neon text-xs py-2.5 px-4"
           >
             Get Started
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Mobile Menu Button */}
-        <div className="md:hidden flex items-center gap-3">
+        {/* Mobile Menu Toggle */}
+        <div className="md:hidden flex items-center gap-2">
           <button
-            onClick={() => onOpenDemoModal('get-started')}
-            className="btn-primary-neon text-xs py-2 px-3"
+            onClick={onOpenHistoryModal}
+            className="p-2 rounded-lg bg-slate-900 border border-cyan-500/30 text-cyan-400 relative"
           >
-            Get Started
+            <History className="w-5 h-5" />
+            {historyCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-cyan-500 text-black text-[9px] font-bold px-1 rounded-full">
+                {historyCount}
+              </span>
+            )}
           </button>
+
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 rounded-lg bg-slate-900 border border-cyan-500/30 text-slate-300 hover:text-cyan-400"
@@ -111,66 +146,40 @@ export default function Navbar({ onOpenDemoModal }) {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#070d1e]/95 border-b border-cyan-500/30 px-6 py-6 space-y-4 fade-in">
-          <a
-            href="#ai-agent"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-cyan-300 font-bold hover:text-cyan-400 text-lg"
-          >
+          <a href="#ai-agent" onClick={() => setMobileMenuOpen(false)} className="block text-cyan-300 font-bold hover:text-cyan-400 text-lg">
             🤖 AI Security Agent
           </a>
-          <a
-            href="#services"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-slate-200 hover:text-cyan-400 font-medium text-lg"
-          >
-            Services
+          <a href="#services" onClick={() => setMobileMenuOpen(false)} className="block text-slate-200 hover:text-cyan-400 font-medium text-lg">
+            Services Hub
           </a>
-          <a
-            href="#how-it-works"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-slate-200 hover:text-cyan-400 font-medium text-lg"
-          >
-            How It Works
+          <a href="#live-scanner" onClick={() => setMobileMenuOpen(false)} className="block text-slate-200 hover:text-cyan-400 font-medium text-lg">
+            Threat Scanner
           </a>
-          <a
-            href="#features"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-slate-200 hover:text-cyan-400 font-medium text-lg"
-          >
-            Features
+          <a href="#dashboard" onClick={() => setMobileMenuOpen(false)} className="block text-slate-200 hover:text-cyan-400 font-medium text-lg">
+            Security Dashboard
           </a>
-          <a
-            href="#live-scanner"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-slate-200 hover:text-cyan-400 font-medium text-lg"
-          >
-            Live Scanner
-          </a>
-          <a
-            href="#dashboard"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-slate-200 hover:text-cyan-400 font-medium text-lg"
-          >
-            Live Intelligence
+          <a href="#api-developer" onClick={() => setMobileMenuOpen(false)} className="block text-slate-200 hover:text-cyan-400 font-medium text-lg">
+            Developer REST API
           </a>
           <div className="pt-4 border-t border-slate-800 flex flex-col gap-3">
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                onOpenDemoModal('demo');
+                onOpenHistoryModal();
               }}
-              className="btn-secondary-cyber w-full justify-center"
+              className="btn-secondary-cyber w-full justify-center text-xs py-2.5"
             >
-              Request Demo
+              <History className="w-4 h-4 text-cyan-400" />
+              View Scan History Logs ({historyCount})
             </button>
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                onOpenDemoModal('get-started');
+                onOpenDemoModal('login');
               }}
-              className="btn-primary-neon w-full justify-center"
+              className="btn-primary-neon w-full justify-center text-xs py-2.5"
             >
-              Get Started Now
+              Account Login / Sign Up
             </button>
           </div>
         </div>
