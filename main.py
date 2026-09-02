@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Header, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional, List
+from urllib.parse import urlparse
 import re
 import datetime
 import secrets
@@ -76,6 +77,24 @@ class ScanResponse(BaseModel):
     threat_intel: Optional[ThreatIntelInfo] = None
     explanation_reasons: List[ReasonItem]
     recommended_actions: List[str]
+
+class URLScanResponse(BaseModel):
+    url: str
+    classification: str  # "safe" | "suspicious" | "dangerous"
+    risk_score: int      # 0 to 100
+    confidence: float    # 0.0 to 1.0
+    reasons: List[str]   # List of explainable rule descriptions
+    id: Optional[str] = None
+    timestamp: Optional[str] = None
+    input_type_statement: Optional[str] = "This is a web URL vector"
+    input_category: Optional[str] = "URL"
+    status: Optional[str] = None
+    status_label: Optional[str] = None
+    verdict: Optional[str] = None
+    domain_reputation: Optional[DomainReputationInfo] = None
+    threat_intel: Optional[ThreatIntelInfo] = None
+    explanation_reasons: Optional[List[ReasonItem]] = []
+    recommended_actions: Optional[List[str]] = []
 
 class UserSignUp(BaseModel):
     email: str
@@ -170,6 +189,236 @@ def get_mock_threat_intel(target: str, is_dangerous: bool) -> ThreatIntelInfo:
         threat_category="Clean Infrastructure",
         last_flagged=None
     )
+
+# ----------------------------------------------------
+# URL Normalization & Feature Extraction & Explainable Risk Engine
+# ----------------------------------------------------
+SUSPICIOUS_TLDS = {
+    "xyz", "top", "zip", "work", "gq", "tk", "cc", "cf", "ml", "ga",
+    "biz", "info", "icu", "monster", "buzz", "club", "run", "cam", "live",
+    "online", "site", "space", "tech", "website", "fit", "rest"
+}
+
+KNOWN_BRANDS = [
+    "paypal", "paypai", "chase", "wellsfargo", "bankofamerica",
+    "apple", "amazon", "google", "microsoft", "netflix",
+    "usps", "fedex", "dhl", "binance", "coinbase", "metamask", "facebook", "instagram"
+]
+
+HIGH_RISK_KEYWORDS = [
+    "login", "signin", "verify", "verification", "security", "secure",
+    "update", "account", "auth", "credential", "banking", "service",
+    "support", "billing", "confirm", "token", "restore", "unlock",
+    "passcode", "password", "validation", "wallet", "wire"
+]
+
+def normalize_url(raw_url: str) -> str:
+    cleaned = raw_url.strip().strip('"').strip("'")
+    if not re.match(r'^https?://', cleaned, re.IGNORECASE):
+        cleaned = "http://" + cleaned
+    return cleaned
+
+def evaluate_url_security(raw_url: str) -> dict:
+    normalized = normalize_url(raw_url)
+    parsed = urlparse(normalized)
+    
+    scheme = parsed.scheme.lower()
+    netloc = parsed.netloc.lower()
+    path = parsed.path.lower()
+    query = parsed.query.lower()
+    full_str = (netloc + path + query).lower()
+
+    # Host / Domain extraction
+    host = netloc.split(":")[0]
+    
+    # 1. HTTPS Check
+    is_https = (scheme == "https")
+    
+    # 2. Raw IP address check (IPv4 / IPv6)
+    is_ip = bool(re.match(r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$', host)) or host.startswith("[")
+    
+    # 3. Very Long URL check
+    url_length = len(raw_url.strip())
+    is_very_long = url_length > 75
+    is_extremely_long = url_length > 120
+    
+    # 4. @ Symbol check
+    has_at_symbol = "@" in raw_url
+    
+    # 5. Suspicious TLD check
+    domain_parts = host.split(".")
+    tld = domain_parts[-1] if len(domain_parts) > 1 else ""
+    is_suspicious_tld = tld in SUSPICIOUS_TLDS
+    
+    # 6. Unusual / Excessive Subdomains check
+    subdomain_count = len(domain_parts) - 2 if len(domain_parts) > 2 else 0
+    is_excessive_subdomains = subdomain_count >= 3
+    
+    # 7. Brand Impersonation & High-Risk Keyword check
+    detected_brands = [b for b in KNOWN_BRANDS if b in full_str]
+    detected_keywords = [kw for kw in HIGH_RISK_KEYWORDS if kw in full_str]
+    
+    # Specific typosquatting indicators
+    is_typosquatting = any(b in host for b in ["paypal-sercuity", "paypai", "auth-update", "chase-update", "fastpay"])
+    
+    # Embedded URL / open redirect indicator
+    has_embedded_url = "http:" in path or "https:" in path or "http:" in query or "https:" in query
+
+    # --- RULE WEIGHT CALCULATIONS ---
+    risk_score = 0
+    rule_reasons: List[str] = []
+    explanation_reasons: List[ReasonItem] = []
+
+    # Rule 1: HTTPS Encryption
+    if not is_https:
+        risk_score += 20
+        rule_reasons.append("Missing HTTPS encryption (Insecure HTTP connection)")
+        explanation_reasons.append(ReasonItem(
+            title="Insecure HTTP Transport Layer",
+            details="URL does not use SSL/TLS encryption (http://), exposing data in transit.",
+            severity="MEDIUM"
+        ))
+
+    # Rule 2: IP Address instead of Domain
+    if is_ip:
+        risk_score += 45
+        rule_reasons.append(f"Raw IP address used instead of domain name ({host})")
+        explanation_reasons.append(ReasonItem(
+            title="Raw IP Host Destination",
+            details="Direct IPv4/v6 host detected instead of registered domain infrastructure.",
+            severity="HIGH"
+        ))
+
+    # Rule 3: URL Length
+    if is_extremely_long:
+        risk_score += 25
+        rule_reasons.append(f"Excessively long URL structure ({url_length} characters)")
+        explanation_reasons.append(ReasonItem(
+            title="Extremely Long URL",
+            details=f"URL string length ({url_length} chars) exceeds security baseline standards.",
+            severity="MEDIUM"
+        ))
+    elif is_very_long:
+        risk_score += 15
+        rule_reasons.append(f"Suspicious URL length ({url_length} characters)")
+        explanation_reasons.append(ReasonItem(
+            title="Suspicious URL Length",
+            details=f"URL length ({url_length} chars) is unusually long.",
+            severity="LOW"
+        ))
+
+    # Rule 4: @ Symbol in URL
+    if has_at_symbol:
+        risk_score += 40
+        rule_reasons.append("User-info @ symbol detected in URL structure")
+        explanation_reasons.append(ReasonItem(
+            title="Deceptive @ Redirection Notation",
+            details="Browsers parse characters before '@' as user credentials, tricking users on true host destination.",
+            severity="HIGH"
+        ))
+
+    # Rule 5: Suspicious TLD
+    if is_suspicious_tld:
+        risk_score += 30
+        rule_reasons.append(f"High-risk disposable top-level domain (.{tld})")
+        explanation_reasons.append(ReasonItem(
+            title="High-Risk Top-Level Domain",
+            details=f"The top-level domain (.{tld}) is commonly linked to disposable phishing campaigns.",
+            severity="HIGH"
+        ))
+
+    # Rule 6: Unusual Subdomain Nesting
+    if is_excessive_subdomains or is_typosquatting:
+        risk_score += 25
+        rule_reasons.append(f"Unusual subdomain structure ({len(domain_parts)} domain levels)")
+        explanation_reasons.append(ReasonItem(
+            title="Unusual Subdomain Nesting",
+            details=f"Domain contains {len(domain_parts)} domain levels, spoofing legit brand structure.",
+            severity="MEDIUM"
+        ))
+
+    # Rule 7: Brand Impersonation & High-Risk Keywords
+    if detected_brands and detected_keywords:
+        risk_score += 35
+        brands_str = ", ".join(detected_brands)
+        keywords_str = ", ".join(detected_keywords[:3])
+        rule_reasons.append(f"Brand impersonation ({brands_str}) with credential keywords ({keywords_str})")
+        explanation_reasons.append(ReasonItem(
+            title="Targeted Brand Impersonation Pattern",
+            details=f"Target brand '{brands_str}' combined with credential harvesting terms ('{keywords_str}').",
+            severity="HIGH"
+        ))
+    elif detected_brands:
+        risk_score += 20
+        rule_reasons.append(f"Brand keyword detected in URL path ({', '.join(detected_brands)})")
+        explanation_reasons.append(ReasonItem(
+            title="Brand Keyword In Path",
+            details=f"Path or subdomain contains brand name '{', '.join(detected_brands)}'.",
+            severity="MEDIUM"
+        ))
+    elif detected_keywords:
+        risk_score += 15
+        rule_reasons.append(f"High-risk action keyword detected ({', '.join(detected_keywords[:3])})")
+        explanation_reasons.append(ReasonItem(
+            title="High-Risk Action Keywords",
+            details=f"Contains terms associated with credential actions ({', '.join(detected_keywords[:3])}).",
+            severity="LOW"
+        ))
+
+    # Rule 8: Embedded URL
+    if has_embedded_url:
+        risk_score += 20
+        rule_reasons.append("Embedded URL detected in path or query parameters")
+        explanation_reasons.append(ReasonItem(
+            title="Embedded Redirection URL",
+            details="Path or parameter contains nested HTTP protocol string.",
+            severity="MEDIUM"
+        ))
+
+    # Clamp risk score (0 to 100)
+    risk_score = min(max(risk_score, 0), 100)
+
+    # Classification
+    if risk_score >= 70:
+        classification = "dangerous"
+        status = "DANGEROUS"
+        status_label = "🔴 Dangerous"
+        verdict = "High-Risk Phishing Threat Detected"
+    elif risk_score >= 35:
+        classification = "suspicious"
+        status = "SUSPICIOUS"
+        status_label = "🟡 Suspicious"
+        verdict = "Suspicious Phishing Indicators Present"
+    else:
+        classification = "safe"
+        status = "SAFE"
+        status_label = "🟢 Safe"
+        verdict = "No Malicious Phishing Patterns Detected"
+        if not rule_reasons:
+            rule_reasons.append("HTTPS encryption verified")
+            rule_reasons.append("Standard legitimate domain structure")
+            rule_reasons.append("Established clean top-level domain")
+
+    # Confidence calculation
+    feature_count = (1 if is_https else 0) + (1 if is_ip else 0) + (1 if is_very_long else 0) + \
+                    (1 if has_at_symbol else 0) + (1 if is_suspicious_tld else 0) + \
+                    (1 if is_excessive_subdomains else 0) + (1 if detected_brands else 0) + \
+                    (1 if detected_keywords else 0)
+    confidence = round(min(0.99, max(0.85, 0.88 + (feature_count * 0.02))), 2)
+
+    return {
+        "url": raw_url,
+        "normalized_url": normalized,
+        "classification": classification,
+        "risk_score": risk_score,
+        "confidence": confidence,
+        "reasons": rule_reasons,
+        "status": status,
+        "status_label": status_label,
+        "verdict": verdict,
+        "explanation_reasons": explanation_reasons,
+        "host": host
+    }
 
 def perform_ai_threat_analysis(text: str, category: str) -> dict:
     lowered = text.lower()
@@ -325,10 +574,53 @@ def scan_input(req: ScanRequest):
     SCAN_HISTORY_DB.insert(0, scan_result.dict())
     return scan_result
 
-# 1: URL Scanner Endpoint
-@app.post("/api/v1/scan/url", response_model=ScanResponse)
+# 1: URL Scanner Endpoint (Explainable Feature Extraction & Rule Engine)
+@app.post("/api/v1/scan/url", response_model=URLScanResponse)
 def scan_url(req: URLScanRequest):
-    return scan_input(ScanRequest(input_text=req.url, scan_vector="URL"))
+    url_to_scan = req.url.strip()
+    if not url_to_scan:
+        raise HTTPException(status_code=400, detail="URL input cannot be empty")
+
+    analysis = evaluate_url_security(url_to_scan)
+    domain = analysis["host"] if analysis["host"] else "scanned-domain.com"
+    is_dangerous = analysis["classification"] == "dangerous"
+
+    scan_id = f"SCAN-{secrets.token_hex(4).upper()}"
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    dom_rep = get_mock_domain_reputation(domain, is_dangerous)
+    threat_intel = get_mock_threat_intel(url_to_scan, is_dangerous)
+
+    rec_actions = [
+        "DO NOT enter passwords, financial numbers, or personal credentials.",
+        "Do not click internal links or download attached payloads.",
+        "Block domain in your network security policy / mail filter."
+    ] if is_dangerous else [
+        "Proceed with normal caution.",
+        "Always inspect the address bar to ensure domain consistency."
+    ]
+
+    response_obj = URLScanResponse(
+        url=url_to_scan,
+        classification=analysis["classification"],
+        risk_score=analysis["risk_score"],
+        confidence=analysis["confidence"],
+        reasons=analysis["reasons"],
+        id=scan_id,
+        timestamp=timestamp,
+        input_type_statement="This is a web URL vector",
+        input_category="URL",
+        status=analysis["status"],
+        status_label=analysis["status_label"],
+        verdict=analysis["verdict"],
+        domain_reputation=dom_rep,
+        threat_intel=threat_intel,
+        explanation_reasons=analysis["explanation_reasons"],
+        recommended_actions=rec_actions
+    )
+
+    SCAN_HISTORY_DB.insert(0, response_obj.dict())
+    return response_obj
 
 # 2: Email Scanner Endpoint
 @app.post("/api/v1/scan/email", response_model=ScanResponse)

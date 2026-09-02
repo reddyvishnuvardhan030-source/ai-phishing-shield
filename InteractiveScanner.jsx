@@ -152,21 +152,26 @@ export default function InteractiveScanner({ onSaveScanToHistory, onOpenHistoryM
           const apiData = await response.json();
           setIsScanning(false);
           setScanResult({
-            id: apiData.id,
-            timestamp: apiData.timestamp,
-            inputTypeStatement: apiData.input_type_statement,
-            inputCategory: apiData.input_category,
+            id: apiData.id || `SCAN-${Math.floor(1000 + Math.random() * 9000)}`,
+            timestamp: apiData.timestamp || new Date().toISOString().replace('T', ' ').substring(0, 19),
+            inputTypeStatement: apiData.input_type_statement || 'This is a web URL vector',
+            inputCategory: apiData.input_category || 'URL',
             score: apiData.risk_score,
-            status: apiData.status,
-            statusLabel: apiData.status_label || (apiData.status === 'DANGEROUS' ? '🔴 Dangerous' : apiData.status === 'SUSPICIOUS' ? '🟡 Suspicious' : '🟢 Safe'),
-            color: apiData.status === 'DANGEROUS' ? 'text-rose-400' : apiData.status === 'SUSPICIOUS' ? 'text-amber-400' : 'text-emerald-400',
-            badgeBg: apiData.status === 'DANGEROUS' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : apiData.status === 'SUSPICIOUS' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-            bgBorder: apiData.status === 'DANGEROUS' ? 'border-rose-500/40 bg-rose-950/30' : apiData.status === 'SUSPICIOUS' ? 'border-amber-500/40 bg-amber-950/30' : 'border-emerald-500/40 bg-emerald-950/30',
-            verdict: apiData.verdict,
+            classification: apiData.classification || (apiData.risk_score >= 70 ? 'dangerous' : apiData.risk_score >= 35 ? 'suspicious' : 'safe'),
+            confidence: apiData.confidence || 0.95,
+            ruleReasons: apiData.reasons || [],
+            status: apiData.status || (apiData.risk_score >= 70 ? 'DANGEROUS' : apiData.risk_score >= 35 ? 'SUSPICIOUS' : 'SAFE'),
+            statusLabel: apiData.status_label || (apiData.risk_score >= 70 ? '🔴 Dangerous' : apiData.risk_score >= 35 ? '🟡 Suspicious' : '🟢 Safe'),
+            color: (apiData.status === 'DANGEROUS' || apiData.risk_score >= 70) ? 'text-rose-400' : (apiData.status === 'SUSPICIOUS' || apiData.risk_score >= 35) ? 'text-amber-400' : 'text-emerald-400',
+            badgeBg: (apiData.status === 'DANGEROUS' || apiData.risk_score >= 70) ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : (apiData.status === 'SUSPICIOUS' || apiData.risk_score >= 35) ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+            bgBorder: (apiData.status === 'DANGEROUS' || apiData.risk_score >= 70) ? 'border-rose-500/40 bg-rose-950/30' : (apiData.status === 'SUSPICIOUS' || apiData.risk_score >= 35) ? 'border-amber-500/40 bg-amber-950/30' : 'border-emerald-500/40 bg-emerald-950/30',
+            verdict: apiData.verdict || (apiData.risk_score >= 70 ? 'High-Risk Phishing Threat Detected' : 'No Malicious Phishing Patterns Detected'),
             domainReputation: apiData.domain_reputation,
             threatIntel: apiData.threat_intel,
-            reasons: apiData.explanation_reasons,
-            safeActions: apiData.recommended_actions,
+            reasons: (apiData.explanation_reasons && apiData.explanation_reasons.length > 0)
+              ? apiData.explanation_reasons
+              : (apiData.reasons || []).map((r) => ({ title: 'Rule Triggered', details: typeof r === 'string' ? r : r.details, severity: 'MEDIUM' })),
+            safeActions: apiData.recommended_actions || ['Proceed with caution.'],
             apiSource: 'FastAPI Backend Engine (http://localhost:8000)',
           });
 
@@ -536,6 +541,11 @@ export default function InteractiveScanner({ onSaveScanToHistory, onOpenHistoryM
                   <span className={`font-mono text-xs font-bold uppercase px-3 py-1 rounded-lg border ${scanResult.badgeBg}`}>
                     STATUS: {scanResult.statusLabel}
                   </span>
+                  {scanResult.confidence && (
+                    <span className="text-xs font-mono text-cyan-300 bg-cyan-950/80 border border-cyan-500/30 px-2.5 py-1 rounded-lg">
+                      Confidence: <strong>{(scanResult.confidence * 100).toFixed(0)}%</strong>
+                    </span>
+                  )}
                   <span className="text-xs font-mono text-slate-300 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg">
                     Vector: <strong>{scanResult.inputTypeStatement}</strong>
                   </span>
