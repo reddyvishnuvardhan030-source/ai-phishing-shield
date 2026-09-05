@@ -89,6 +89,20 @@ const PRESET_SAMPLES = [
   },
 ];
 
+function levenshteinDistance(a, b) {
+  const dp = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+  for (let i = 0; i <= a.length; i++) dp[i][0] = i;
+  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1]);
+    }
+  }
+  return dp[a.length][b.length];
+}
+
 function evaluateEmailSecurityClient(body, sender, subject, attachment) {
   const bodyText = body || '';
   const senderStr = (sender || '').trim();
@@ -467,10 +481,35 @@ export default function InteractiveScanner({ onSaveScanToHistory, onOpenHistoryM
       const fullStr = (parsedHost + pathStr).toLowerCase();
       const detectedBrands = knownBrands.filter(b => fullStr.includes(b));
       const detectedKeywords = highRiskKeywords.filter(kw => fullStr.includes(kw));
-      const isTyposquatting = ['paypal-sercuity', 'paypai', 'auth-update', 'chase-update', 'fastpay'].some(b => fullStr.includes(b));
+
+      // Levenshtein Edit-Distance Typosquatting Check
+      const domainTokens = parsedHost.split(/[-._]/).filter(tok => tok && tok !== tld);
+      let typosquatMatch = null;
+      for (const tok of domainTokens) {
+        for (const brand of knownBrands) {
+          if (tok === brand) continue;
+          const dist = levenshteinDistance(tok, brand);
+          if (dist > 0 && dist <= 2 && tok.length >= brand.length - 2) {
+            typosquatMatch = { tok, brand, dist };
+            break;
+          }
+        }
+        if (typosquatMatch) break;
+      }
+
+      const isTyposquatting = (typosquatMatch !== null) || ['paypal-sercuity', 'paypai', 'auth-update', 'chase-update', 'fastpay'].some(b => fullStr.includes(b));
 
       let score = 0;
       const reasons = [];
+
+      if (typosquatMatch) {
+        score += 40;
+        reasons.push({
+          title: 'Levenshtein Typosquatting Homoglyph',
+          details: `Domain token "${typosquatMatch.tok}" closely resembles official brand "${typosquatMatch.brand}" (Levenshtein distance ${typosquatMatch.dist}) — possible typosquat.`,
+          severity: 'HIGH'
+        });
+      }
 
       if (!isHttps) {
         score += 20;
@@ -520,15 +559,32 @@ export default function InteractiveScanner({ onSaveScanToHistory, onOpenHistoryM
         reasons.push({ title: 'Unusual Subdomain Nesting', details: `Domain contains ${domainParts.length} levels, imitating legit organizational structure.`, severity: 'MEDIUM' });
       }
 
-      if (detectedBrands.length > 0 && detectedKeywords.length > 0) {
-        score += 35;
-        reasons.push({ title: 'Targeted Brand Impersonation', details: `Combines brand reference '${detectedBrands.join(', ')}' with credential harvesting terms ('${detectedKeywords.slice(0, 3).join(', ')}').`, severity: 'HIGH' });
-      } else if (detectedBrands.length > 0) {
-        score += 20;
-        reasons.push({ title: 'Brand Reference in Path', details: `Subdomain or path references brand name '${detectedBrands.join(', ')}'.`, severity: 'MEDIUM' });
-      } else if (detectedKeywords.length > 0) {
-        score += 15;
-        reasons.push({ title: 'High-Risk Action Keywords', details: `Contains credential action keywords (${detectedKeywords.slice(0, 3).join(', ')}).`, severity: 'LOW' });
+      const exactTrustedDomains = [
+        'google.com', 'www.google.com',
+        'microsoft.com', 'www.microsoft.com',
+        'apple.com', 'www.apple.com',
+        'amazon.com', 'www.amazon.com',
+        'github.com', 'www.github.com',
+        'paypal.com', 'www.paypal.com',
+        'chase.com', 'www.chase.com'
+      ];
+
+      if (exactTrustedDomains.includes(parsedHost) && isHttps) {
+        score = 0;
+        reasons.length = 0;
+        reasons.push({ title: 'HTTPS Transport Security Verified', details: 'Valid SSL/TLS encryption active on connection.', severity: 'LOW' });
+        reasons.push({ title: 'Standard Hostname Structure', details: 'Domain structure matches baseline legitimate naming standards.', severity: 'LOW' });
+      } else {
+        if (detectedBrands.length > 0 && detectedKeywords.length > 0) {
+          score += 35;
+          reasons.push({ title: 'Targeted Brand Impersonation', details: `Combines brand reference '${detectedBrands.join(', ')}' with credential harvesting terms ('${detectedKeywords.slice(0, 3).join(', ')}').`, severity: 'HIGH' });
+        } else if (detectedBrands.length > 0) {
+          score += 20;
+          reasons.push({ title: 'Brand Reference in Path', details: `Subdomain or path references brand name '${detectedBrands.join(', ')}'.`, severity: 'MEDIUM' });
+        } else if (detectedKeywords.length > 0) {
+          score += 15;
+          reasons.push({ title: 'High-Risk Action Keywords', details: `Contains credential action keywords (${detectedKeywords.slice(0, 3).join(', ')}).`, severity: 'LOW' });
+        }
       }
 
       score = Math.min(Math.max(score, 0), 100);

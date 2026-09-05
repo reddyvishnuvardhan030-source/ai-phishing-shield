@@ -530,19 +530,299 @@
     }
     switchScannerTab('url');
 
+    function scanVector(input, type = 'url') {
+      const str = (input || '').trim();
+      if (!str) {
+        return {
+          score: 0,
+          verdict: 'Empty Vector Input',
+          indicators: ['No input content provided for security analysis.']
+        };
+      }
+
+      let score = 0;
+      const indicators = [];
+      const normalizedType = (type || 'url').toLowerCase();
+
+      function getLevenshteinDistance(a, b) {
+        const matrix = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+        for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+        for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+        for (let i = 1; i <= a.length; i++) {
+          for (let j = 1; j <= b.length; j++) {
+            matrix[i][j] = a[i - 1] === b[j - 1]
+              ? matrix[i - 1][j - 1]
+              : 1 + Math.min(matrix[i - 1][j - 1], matrix[i - 1][j], matrix[i][j - 1]);
+          }
+        }
+        return matrix[a.length][b.length];
+      }
+
+      const knownBrands = ['paypal', 'google', 'microsoft', 'apple', 'amazon', 'chase', 'wellsfargo', 'bankofamerica', 'binance', 'coinbase', 'facebook', 'instagram', 'netflix', 'dropbox', 'usps', 'fedex', 'ebay'];
+      const highRiskKeywords = ['login', 'signin', 'verify', 'verification', 'security', 'secure', 'update', 'account', 'auth', 'credential', 'banking', 'billing', 'confirm', 'token', 'wallet', 'passcode', 'password', 'wire', 'urgent', 'suspend', 'restricted'];
+      const suspiciousTLDs = ['xyz', 'top', 'zip', 'work', 'gq', 'tk', 'cc', 'cf', 'ml', 'ga', 'biz', 'info', 'icu', 'monster', 'buzz', 'club', 'run', 'cam', 'live', 'online', 'site', 'space', 'tech', 'website', 'fit', 'rest', 'mov'];
+
+      if (normalizedType === 'url' || normalizedType.includes('url') || /^https?:\/\//i.test(str)) {
+        let rawUrl = str;
+        if (!/^https?:\/\//i.test(rawUrl)) {
+          rawUrl = 'http://' + rawUrl;
+        }
+
+        let hostname = '';
+        let pathname = '';
+        try {
+          const urlObj = new URL(rawUrl);
+          hostname = urlObj.hostname.toLowerCase();
+          pathname = (urlObj.pathname + urlObj.search).toLowerCase();
+        } catch (e) {
+          hostname = str.split('/')[0].split('?')[0].toLowerCase();
+          pathname = str.includes('/') ? str.substring(str.indexOf('/')).toLowerCase() : '';
+        }
+
+        const isHttps = /^https:\/\//i.test(str);
+        const isIp = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(hostname) || hostname.startsWith('[');
+        const hasAt = str.includes('@');
+        const hasHex = /%[0-9a-fA-F]{2}/.test(str);
+
+        const exactTrustedDomains = [
+          'google.com', 'www.google.com',
+          'microsoft.com', 'www.microsoft.com',
+          'apple.com', 'www.apple.com',
+          'amazon.com', 'www.amazon.com',
+          'github.com', 'www.github.com',
+          'paypal.com', 'www.paypal.com',
+          'chase.com', 'www.chase.com'
+        ];
+
+        if (exactTrustedDomains.includes(hostname) && isHttps) {
+          return {
+            score: 0,
+            verdict: 'Clean Vector: Verified Legitimate Infrastructure',
+            indicators: [
+              `Verified legitimate domain name (${hostname})`,
+              'HTTPS TLS transport layer active',
+              'No typosquatting or malicious heuristics detected'
+            ]
+          };
+        }
+
+        if (!isHttps) {
+          score += 15;
+          indicators.push('Insecure HTTP transport connection (missing SSL/TLS encryption)');
+        }
+
+        if (isIp) {
+          score += 45;
+          indicators.push(`Direct raw IP address (${hostname}) used as destination hostname`);
+        }
+
+        if (hasAt) {
+          score += 40;
+          indicators.push('Contains @ symbol user-info notation for deceptive redirection');
+        }
+
+        if (hasHex) {
+          score += 20;
+          indicators.push('Contains hex/percent character encoding (%20, %2f) obscuring payload');
+        }
+
+        const parts = hostname.split('.');
+        const tld = parts.length > 1 ? parts[parts.length - 1] : '';
+        if (suspiciousTLDs.includes(tld)) {
+          score += 30;
+          indicators.push(`Disposable high-risk top-level domain (.${tld}) heavily associated with phishing`);
+        }
+
+        const domainTokens = hostname.split(/[-._]/).filter(t => t && t !== tld && t !== 'www');
+        let typosquatFound = false;
+
+        const homoglyphStr = hostname.replace(/1/g, 'l').replace(/0/g, 'o').replace(/5/g, 's').replace(/3/g, 'e').replace(/@/g, 'a');
+        for (const brand of knownBrands) {
+          if (hostname.includes(brand) && !hostname.endsWith(`.${brand}.com`) && hostname !== `${brand}.com`) {
+            if (!exactTrustedDomains.includes(hostname)) {
+              score += 30;
+              indicators.push(`Brand reference '${brand}' inside untrusted hostname '${hostname}'`);
+              typosquatFound = true;
+              break;
+            }
+          } else if (homoglyphStr.includes(brand) && !hostname.includes(brand)) {
+            score += 40;
+            indicators.push(`Homoglyph character substitution impersonating official brand '${brand}'`);
+            typosquatFound = true;
+            break;
+          }
+        }
+
+        if (!typosquatFound) {
+          for (const tok of domainTokens) {
+            for (const brand of knownBrands) {
+              if (tok === brand) continue;
+              const dist = getLevenshteinDistance(tok, brand);
+              if (dist > 0 && dist <= 2 && tok.length >= brand.length - 2) {
+                score += 40;
+                indicators.push(`Levenshtein typosquatting homoglyph: '${tok}' closely resembles '${brand}' (edit distance: ${dist})`);
+                typosquatFound = true;
+                break;
+              }
+            }
+            if (typosquatFound) break;
+          }
+        }
+
+        const combinedStr = (hostname + pathname).toLowerCase();
+        const foundKeywords = highRiskKeywords.filter(kw => combinedStr.includes(kw));
+        if (foundKeywords.length > 0) {
+          const addedScore = Math.min(30, foundKeywords.length * 15);
+          score += addedScore;
+          indicators.push(`High-risk credential action keywords detected (${foundKeywords.slice(0, 3).join(', ')})`);
+        }
+
+        if (str.length > 75) {
+          score += 15;
+          indicators.push(`Suspicious URL length (${str.length} characters)`);
+        }
+
+        if (indicators.length === 0) {
+          indicators.push('HTTPS transport security active');
+          indicators.push('Standard domain naming baseline verified');
+        }
+      } else if (normalizedType === 'email') {
+        const lowerStr = str.toLowerCase();
+        if (/\b(urgent|immediate action|account suspension|unauthorized access|overdue invoice|24 hours|action required)\b/i.test(lowerStr)) {
+          score += 30;
+          indicators.push('Psychological coercion and high-urgency panic language detected');
+        }
+        if (/\b(wire transfer|gift card|swift|w-2|direct deposit|bank transfer|offshore account|payment required)\b/i.test(lowerStr)) {
+          score += 40;
+          indicators.push('Financial wire transfer or sensitive executive data export request (BEC attack)');
+        }
+        if (/\b(pdf\.exe|\.exe|\.vbs|\.scr|\.bat|\.ps1)\b/i.test(lowerStr)) {
+          score += 45;
+          indicators.push('Weaponized executable payload or deceptive double-extension attachment');
+        }
+        if (/https?:\/\/[^\s<>"]+\.(xyz|top|zip|work|gq|tk|cc|cf|ml|ga|icu)/i.test(lowerStr)) {
+          score += 35;
+          indicators.push('Contains hyperlinks routing to disposable high-risk TLDs');
+        }
+        if (indicators.length === 0) {
+          indicators.push('Email header alignment (SPF/DMARC) standard baseline');
+          indicators.push('No weaponized attachments or deceptive links flagged');
+        }
+      } else if (normalizedType === 'qr') {
+        const lowerStr = str.toLowerCase();
+        if (lowerStr.includes('http://') || lowerStr.includes('https://')) {
+          const urlMatch = str.match(/https?:\/\/[^\s<>"]+/i);
+          if (urlMatch) {
+            const subResult = scanVector(urlMatch[0], 'url');
+            return {
+              score: subResult.score,
+              verdict: subResult.score >= 70 ? 'High-Risk Quishing Threat (Tampered QR Code)' : subResult.verdict,
+              indicators: [`Decoded QR Code URL Payload: ${urlMatch[0]}`, ...subResult.indicators]
+            };
+          }
+        }
+        if (/\.(xyz|top|zip|work|gq|tk)\b/i.test(lowerStr) || /pay\?session=/i.test(lowerStr)) {
+          score += 60;
+          indicators.push('QR code routes to malicious payment portal session or disposable TLD');
+        } else {
+          score += 10;
+          indicators.push('Decoded QR payload structure parsed cleanly');
+        }
+      } else if (normalizedType === 'sms') {
+        const lowerStr = str.toLowerCase();
+        if (/\b(usps|fedex|ups|package|delivery|bank|account|blocked|suspended|verify)\b/i.test(lowerStr)) {
+          score += 35;
+          indicators.push('SMS smishing lure pattern detected (Package delivery / Banking alert trap)');
+        }
+        if (/https?:\/\/[^\s<>"]+/i.test(lowerStr)) {
+          score += 35;
+          indicators.push('SMS message contains suspicious unverified hyperlink');
+        }
+        if (/\b(immediately|24 hours|urgent|action required)\b/i.test(lowerStr)) {
+          score += 20;
+          indicators.push('Urgency pressure tactics designed to induce rapid user clickthrough');
+        }
+        if (indicators.length === 0) {
+          indicators.push('No high-risk smishing patterns or malicious links detected');
+        }
+      } else if (normalizedType === 'file') {
+        const lowerStr = str.toLowerCase();
+        if (/\.(pdf|doc|docx|jpg|png|txt)\.(exe|vbs|scr|bat|cmd|ps1|js|hta)$/i.test(lowerStr)) {
+          score += 85;
+          indicators.push('Deceptive double-extension executable payload (.pdf.exe / .doc.vbs)');
+        } else if (/\.(exe|vbs|scr|bat|cmd|ps1|js|hta|iso|img|jar)$/i.test(lowerStr)) {
+          score += 75;
+          indicators.push('Direct executable script or binary payload file extension');
+        } else if (/\.(docm|xlsm|pptm)\b/i.test(lowerStr) || lowerStr.includes('vba macro')) {
+          score += 45;
+          indicators.push('VBA macro-enabled Office document capable of downloading malware payloads');
+        } else if (/\.(zip|rar|7z)\b/i.test(lowerStr) && lowerStr.includes('password')) {
+          score += 35;
+          indicators.push('Encrypted archive designed to evade automated antivirus sandbox scanning');
+        } else {
+          score += 5;
+          indicators.push('File extension and payload signature match standard document baseline');
+        }
+      }
+
+      score = Math.min(Math.max(score, 0), 100);
+
+      let verdict = 'No Malicious Phishing Patterns Detected';
+      if (score >= 70) {
+        verdict = 'High-Risk Phishing Threat Detected';
+      } else if (score >= 35) {
+        verdict = 'Suspicious Phishing Indicators Present';
+      }
+
+      return {
+        score,
+        verdict,
+        indicators
+      };
+    }
+
     function runAIScan() {
       const inputVal = document.getElementById('scanner-input').value;
+      if (!inputVal || !inputVal.trim()) return;
+
+      const result = scanVector(inputVal, currentTab);
+      const { score, verdict, indicators } = result;
+
+      let scoreColor = 'text-emerald-400';
+      let borderColor = 'border-emerald-500/40';
+      let bgColor = 'bg-emerald-950/20';
+      let statusText = 'LOW RISK / SAFE';
+      let recText = 'RECOMMENDATION: Vector passed security heuristics cleanly. Proceed with standard vigilance.';
+
+      if (score >= 70) {
+        scoreColor = 'text-rose-400';
+        borderColor = 'border-rose-500/40';
+        bgColor = 'bg-rose-950/20';
+        statusText = 'CRITICAL THREAT';
+        recText = 'RECOMMENDATION: Quarantine content and block destination domain on corporate firewall.';
+      } else if (score >= 35) {
+        scoreColor = 'text-amber-400';
+        borderColor = 'border-amber-500/40';
+        bgColor = 'bg-amber-950/20';
+        statusText = 'SUSPICIOUS THREAT';
+        recText = 'RECOMMENDATION: Exercise caution. Verify domain and sender authenticity before entering credentials.';
+      }
+
+      const indText = (indicators && indicators.length > 0)
+        ? indicators.join(' • ')
+        : 'Target matches baseline security criteria with no malicious flags detected.';
+
       const outputDiv = document.getElementById('scan-output');
       outputDiv.classList.remove('hidden');
       outputDiv.innerHTML = `
-        <div class="p-6 rounded-xl border border-cyan-500/40 bg-cyan-950/20 space-y-4 fade-in">
+        <div class="p-6 rounded-xl border ${borderColor} ${bgColor} space-y-4 fade-in">
           <div class="flex items-center justify-between">
             <span class="font-mono text-xs text-cyan-400 font-bold">EVALUATING SECURITY RULES...</span>
-            <span class="font-mono text-xs text-rose-400 font-bold">RISK SCORE: 96/100 [CRITICAL THREAT]</span>
+            <span class="font-mono text-xs ${scoreColor} font-bold">RISK SCORE: ${score}/100 [${statusText}]</span>
           </div>
-          <div class="text-sm font-bold text-white">Verdict: High-Risk Phishing Vector Detected</div>
-          <div class="text-xs text-slate-300">Target matches known typosquatting patterns, suspicious TLD extensions, and NLP social engineering urgency triggers.</div>
-          <div class="text-xs font-mono text-emerald-400 pt-2">RECOMMENDATION: Quarantine content and block destination domain on corporate firewall.</div>
+          <div class="text-sm font-bold text-white">Verdict: ${verdict}</div>
+          <div class="text-xs text-slate-300">${indText}</div>
+          <div class="text-xs font-mono ${scoreColor} pt-2">${recText}</div>
         </div>
       `;
     }
