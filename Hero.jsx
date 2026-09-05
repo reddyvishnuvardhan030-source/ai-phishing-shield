@@ -24,7 +24,7 @@ export default function Hero({ onOpenDemoModal, onSaveScanToHistory, onOpenHisto
           <div className="badge-neon py-1.5 px-4 shadow-[0_0_20px_rgba(0,240,255,0.2)] flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
             <span className="text-xs sm:text-sm font-bold tracking-wide">
-              ZERO-DAY PHISHING DEFENSE PLATFORM
+              AI PHISHING DEFENSE PLATFORM
             </span>
           </div>
         </div>

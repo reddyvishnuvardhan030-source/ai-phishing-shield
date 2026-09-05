@@ -87,7 +87,7 @@ export default function FeaturesSection() {
             Engineered for <span className="text-gradient-neon">Uncompromising Security</span>
           </h2>
           <p className="mt-4 text-slate-300 text-base sm:text-lg">
-            Eight essential core features delivering bulletproof protection, seamless threat detection, and zero productivity friction.
+            Eight essential core features delivering Multi-Layer Phishing Protection, seamless threat detection, and zero productivity friction.
           </p>
         </div>
 
