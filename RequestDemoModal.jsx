@@ -268,14 +268,14 @@ export default function RequestDemoModal({ isOpen, onClose, initialMode = 'demo'
 
             {(mode === 'demo' || mode === 'signup') && (
               <div>
-                <label className="text-xs font-mono text-slate-400 block mb-1">Company / Organization:</label>
+                <label className="text-xs font-mono text-slate-400 block mb-1">COMPANY NAME</label>
                 <div className="relative flex items-center">
                   <Building className="absolute left-3.5 w-4 h-4 text-slate-500" />
                   <input
                     type="text"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
-                    placeholder="Acme Global Cybersecurity Inc"
+                    placeholder="COMPANY NAME"
                     className="w-full bg-[#030712] border border-cyan-500/30 rounded-xl py-2.5 pl-10 pr-3 text-xs text-white font-mono focus:outline-none focus:border-cyan-400"
                   />
                 </div>
@@ -288,7 +288,7 @@ export default function RequestDemoModal({ isOpen, onClose, initialMode = 'demo'
                   ? 'Sign In to Shield Dashboard'
                   : mode === 'signup'
                   ? 'Create Account & Generate API Key'
-                  : 'Submit Demo Request'}
+                  : 'Confirm Request'}
               </span>
               <ArrowRight className="w-4 h-4" />
             </button>

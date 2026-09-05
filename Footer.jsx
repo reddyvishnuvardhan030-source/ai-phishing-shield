@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 export default function Footer({ onOpenDemoModal }) {
-  const [modalContent, setModalContent] = useState(null); // 'privacy' | 'terms' | null
+  const [modalType, setModalType] = useState(null); // 'privacy' | 'terms' | null
 
   return (
     <footer className="bg-[#030712] border-t border-cyan-500/20 pt-16 pb-12 relative overflow-hidden">
@@ -197,7 +197,7 @@ export default function Footer({ onOpenDemoModal }) {
 
             <div className="pt-6 border-t border-slate-800 flex justify-end">
               <button
-                onClick={() => setModalContent(null)}
+                onClick={() => setModalType(null)}
                 className="btn-secondary-cyber text-xs py-2 px-5"
               >
                 Close Window
