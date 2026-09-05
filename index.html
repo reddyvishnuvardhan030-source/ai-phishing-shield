@@ -688,22 +688,99 @@
         }
       } else if (normalizedType === 'email') {
         const lowerStr = str.toLowerCase();
-        if (/\b(urgent|immediate action|account suspension|unauthorized access|overdue invoice|24 hours|action required)\b/i.test(lowerStr)) {
-          score += 30;
+
+        // 1. Domain & Email Extraction from Header or Raw Text
+        let extractedEmail = '';
+        let extractedDomain = '';
+        let senderHeaderName = '';
+
+        const fromHeaderMatch = str.match(/From:\s*([^<\r\n]*)(?:<([^>\r\n]+)>)?/i);
+        if (fromHeaderMatch) {
+          senderHeaderName = (fromHeaderMatch[1] || '').trim();
+          if (fromHeaderMatch[2]) {
+            extractedEmail = fromHeaderMatch[2].trim();
+          } else if (senderHeaderName.includes('@')) {
+            extractedEmail = senderHeaderName;
+          }
+        }
+
+        if (!extractedEmail) {
+          const emailRegex = /[\w.-]+@([\w.-]+\.[a-zA-Z]{2,})/;
+          const m = str.match(emailRegex);
+          if (m) {
+            extractedEmail = m[0];
+            extractedDomain = m[1].toLowerCase();
+          }
+        } else if (extractedEmail.includes('@')) {
+          extractedDomain = extractedEmail.split('@').pop().replace('>', '').trim().toLowerCase();
+        }
+
+        let hasSuspiciousDomainTLD = false;
+        let hasSecurityImpersonation = false;
+        let hasUrgencyLanguage = false;
+
+        // 2. Extracted Sender Domain Inspection
+        if (extractedDomain) {
+          const domainParts = extractedDomain.split('.');
+          const tld = domainParts.length > 1 ? domainParts[domainParts.length - 1] : '';
+
+          if (suspiciousTLDs.includes(tld)) {
+            hasSuspiciousDomainTLD = true;
+            score += 35;
+            indicators.push(`Sender email domain ('${extractedDomain}') uses disposable high-risk TLD (.${tld})`);
+          }
+
+          const authorityTerms = ['security', 'support', 'verify', 'verification', 'admin', 'service', 'account', 'helpdesk', 'trust'];
+          const claimsAuthority = authorityTerms.some(term =>
+            senderHeaderName.toLowerCase().includes(term) ||
+            extractedEmail.toLowerCase().startsWith(term) ||
+            extractedDomain.includes(term)
+          );
+
+          const isTrustedDomain = ['google.com', 'microsoft.com', 'apple.com', 'chase.com', 'paypal.com', 'amazon.com'].some(td => extractedDomain === td || extractedDomain.endsWith('.' + td));
+
+          if (claimsAuthority && (!isTrustedDomain || hasSuspiciousDomainTLD)) {
+            hasSecurityImpersonation = true;
+            score += 35;
+            indicators.push(`Sender claims security/support authority ('${senderHeaderName || extractedEmail}') on unverified domain ('${extractedDomain}')`);
+          }
+        }
+
+        // 3. High-Urgency Panic & Psychological Coercion
+        if (/\b(urgent|immediate action|account suspension|account will be suspended|account has been flagged|unauthorized access|overdue invoice|24 hours|action required|verify your identity|verify immediately|click here immediately)\b/i.test(lowerStr)) {
+          hasUrgencyLanguage = true;
+          score += 35;
           indicators.push('Psychological coercion and high-urgency panic language detected');
         }
+
+        // 4. BEC / Financial Transfer Requests
         if (/\b(wire transfer|gift card|swift|w-2|direct deposit|bank transfer|offshore account|payment required)\b/i.test(lowerStr)) {
           score += 40;
           indicators.push('Financial wire transfer or sensitive executive data export request (BEC attack)');
         }
+
+        // 5. Executable Attachment Payloads
         if (/\b(pdf\.exe|\.exe|\.vbs|\.scr|\.bat|\.ps1)\b/i.test(lowerStr)) {
           score += 45;
           indicators.push('Weaponized executable payload or deceptive double-extension attachment');
         }
+
+        // 6. Hyperlinks to Disposable TLDs in Email Body
         if (/https?:\/\/[^\s<>"]+\.(xyz|top|zip|work|gq|tk|cc|cf|ml|ga|icu)/i.test(lowerStr)) {
           score += 35;
-          indicators.push('Contains hyperlinks routing to disposable high-risk TLDs');
+          indicators.push('Contains embedded hyperlinks routing to disposable high-risk TLDs');
         }
+
+        // Re-balancing: Urgency + Suspicious Domain/TLD or Security Impersonation must reach High Risk (70+)
+        if (hasUrgencyLanguage && (hasSuspiciousDomainTLD || hasSecurityImpersonation)) {
+          if (score < 70) score = 70;
+        }
+
+        // Consistency Guarantee: If ANY threat indicators exist, score must be at least 35 (Suspicious/Moderate Risk)
+        if (indicators.length > 0 && score < 35) {
+          score = 35;
+        }
+
         if (indicators.length === 0) {
           indicators.push('Email header alignment (SPF/DMARC) standard baseline');
           indicators.push('No weaponized attachments or deceptive links flagged');

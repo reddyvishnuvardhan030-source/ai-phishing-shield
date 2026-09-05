@@ -114,31 +114,97 @@ function evaluateEmailSecurityClient(body, sender, subject, attachment) {
   let score = 0;
   const reasons = [];
 
+  // 1. Domain & Email Extraction
+  let extractedEmail = '';
   let senderDomain = '';
-  if (senderStr.includes('@')) {
-    senderDomain = senderStr.split('@').pop().replace('>', '').trim().toLowerCase();
+  let senderHeaderName = '';
+
+  const fromHeaderMatch = combined.match(/From:\s*([^<\r\n]*)(?:<([^>\r\n]+)>)?/i);
+  if (fromHeaderMatch) {
+    senderHeaderName = (fromHeaderMatch[1] || '').trim();
+    if (fromHeaderMatch[2]) {
+      extractedEmail = fromHeaderMatch[2].trim();
+    } else if (senderHeaderName.includes('@')) {
+      extractedEmail = senderHeaderName;
+    }
   }
 
-  // 1. Brand / Executive Display Mismatch
+  if (!extractedEmail) {
+    if (senderStr.includes('@')) {
+      extractedEmail = senderStr;
+    } else {
+      const emailRegex = /[\w.-]+@([\w.-]+\.[a-zA-Z]{2,})/;
+      const m = combined.match(emailRegex);
+      if (m) extractedEmail = m[0];
+    }
+  }
+
+  if (extractedEmail && extractedEmail.includes('@')) {
+    senderDomain = extractedEmail.split('@').pop().replace('>', '').trim().toLowerCase();
+  }
+
+  let hasSuspiciousDomainTLD = false;
+  let hasSecurityImpersonation = false;
+  let hasUrgencyLanguage = false;
+
+  const suspiciousTLDs = ['xyz', 'top', 'zip', 'work', 'gq', 'tk', 'cc', 'cf', 'ml', 'ga', 'icu', 'monster'];
+
+  // 2. Sender Domain Inspection & Authority Impersonation
+  if (senderDomain) {
+    const domainParts = senderDomain.split('.');
+    const tld = domainParts.length > 1 ? domainParts[domainParts.length - 1] : '';
+
+    if (suspiciousTLDs.includes(tld)) {
+      hasSuspiciousDomainTLD = true;
+      score += 35;
+      reasons.push({
+        title: 'High-Risk Sender Email Domain TLD',
+        details: `Sender domain '${senderDomain}' uses low-cost, disposable top-level domain (.${tld}) associated with phishing operations.`,
+        severity: 'HIGH'
+      });
+    }
+
+    const authorityTerms = ['security', 'support', 'verify', 'verification', 'admin', 'service', 'account', 'helpdesk', 'trust'];
+    const claimsAuthority = authorityTerms.some(term =>
+      senderStr.toLowerCase().includes(term) ||
+      senderHeaderName.toLowerCase().includes(term) ||
+      extractedEmail.toLowerCase().startsWith(term) ||
+      senderDomain.includes(term)
+    );
+
+    const isTrustedDomain = ['google.com', 'microsoft.com', 'apple.com', 'chase.com', 'paypal.com', 'amazon.com'].some(td => senderDomain === td || senderDomain.endsWith('.' + td));
+
+    if (claimsAuthority && (!isTrustedDomain || hasSuspiciousDomainTLD)) {
+      hasSecurityImpersonation = true;
+      score += 35;
+      reasons.push({
+        title: 'Security Authority Claim on Untrusted Domain',
+        details: `Sender claims security/support authority ('${senderStr || senderHeaderName || extractedEmail}') on unverified domain ('${senderDomain}').`,
+        severity: 'HIGH'
+      });
+    }
+  }
+
+  // 3. Brand / Executive Display Mismatch
   let isBrandSpoof = false;
   const brands = ['paypal', 'chase', 'bank', 'microsoft', 'google', 'apple', 'hr', 'payroll', 'ceo', 'executive'];
   for (const b of brands) {
-    if (senderStr.toLowerCase().includes(b) && senderDomain && !senderDomain.endsWith(`${b}.com`)) {
+    if (combined.includes(b) && senderDomain && !senderDomain.endsWith(`${b}.com`)) {
       isBrandSpoof = true;
       break;
     }
   }
 
-  if (isBrandSpoof) {
+  if (isBrandSpoof && !hasSecurityImpersonation) {
     score += 35;
     reasons.push({
       title: 'Display Identity & Domain Mismatch',
-      details: `Sender claims identity '${senderStr}' but uses untrusted domain '${senderDomain}'.`,
+      details: `Sender claims identity '${senderStr || senderHeaderName}' but uses untrusted domain '${senderDomain}'.`,
       severity: 'HIGH'
     });
   }
 
-  // 2. Link Anchor Text Mismatch Detection
+  // 4. Link Anchor Text Mismatch Detection
   const anchorMismatches = [];
   const anchorRegex = /\[(https?:\/\/[^\]]+)\]\((https?:\/\/[^\)]+)\)/gi;
   let match;
@@ -164,7 +230,7 @@ function evaluateEmailSecurityClient(body, sender, subject, attachment) {
     });
   }
 
-  // 3. High Risk TLDs in Body Links
+  // 5. High Risk TLDs in Body Links
   const extractedUrls = bodyText.match(/https?:\/\/[^\s<>"]+/gi) || [];
   for (const u of extractedUrls) {
     if (/\.(xyz|top|zip|work|gq|tk|cc|cf|ml|ga|icu|monster)(\/|$)/i.test(u)) {
@@ -178,7 +244,7 @@ function evaluateEmailSecurityClient(body, sender, subject, attachment) {
     }
   }
 
-  // 4. Attachment Malware Threat
+  // 6. Attachment Malware Threat
   if (attStr) {
     const attLow = attStr.toLowerCase();
     if (/\.(pdf|doc|docx|jpg|png|txt|csv)\.(exe|vbs|scr|bat|cmd|ps1|js|hta)$/i.test(attLow)) {
@@ -205,13 +271,14 @@ function evaluateEmailSecurityClient(body, sender, subject, attachment) {
     }
   }
 
-  // 5. Psychological Coercion & BEC Wire Transfer Keywords
-  if (/\b(urgent|immediate action|account suspension|unauthorized access|overdue invoice)\b/i.test(combined)) {
-    score += 25;
+  // 7. Psychological Coercion & BEC Wire Transfer Keywords
+  if (/\b(urgent|immediate action|account suspension|account will be suspended|account has been flagged|unauthorized access|overdue invoice|24 hours|action required|verify your identity)\b/i.test(combined)) {
+    hasUrgencyLanguage = true;
+    score += 35;
     reasons.push({
       title: 'Psychological Coercion & Urgency Trigger',
       details: "Contains high-urgency panic language designed to rush user compliance without verification.",
-      severity: 'MEDIUM'
+      severity: 'HIGH'
     });
   }
 
@@ -222,6 +289,16 @@ function evaluateEmailSecurityClient(body, sender, subject, attachment) {
       details: "Prompt requests unverified corporate financial transfer or sensitive data export.",
       severity: 'HIGH'
     });
+  }
+
+  // Re-balancing: Urgency + Suspicious Sender TLD or Impersonation pushes score to High Risk (70+)
+  if (hasUrgencyLanguage && (hasSuspiciousDomainTLD || hasSecurityImpersonation)) {
+    if (score < 70) score = 70;
+  }
+
+  // Consistency Guarantee: If risk reasons exist, score is at least 35 (Suspicious)
+  if (reasons.length > 0 && score < 35) {
+    score = 35;
   }
 
   score = Math.min(Math.max(score, 0), 100);
@@ -240,7 +317,7 @@ function evaluateEmailSecurityClient(body, sender, subject, attachment) {
     color = 'text-rose-400';
     badgeBg = 'bg-rose-500/20 text-rose-300 border-rose-500/40';
     bgBorder = 'border-rose-500/40 bg-rose-950/30';
-  } else if (score >= 30) {
+  } else if (score >= 35) {
     status = 'SUSPICIOUS';
     statusLabel = '🟡 Suspicious';
     verdict = 'Suspicious Phishing Indicators Present in Email';
