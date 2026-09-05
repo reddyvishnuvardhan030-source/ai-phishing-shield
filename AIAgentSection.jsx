@@ -83,8 +83,8 @@ export default function AIAgentSection() {
       interactiveDemo: {
         type: 'Risk Meter',
         input: 'Risk Score Range: 1 (Safest) to 100 (Critical Threat)',
-        reason: 'Calibrated using millions of real-time dark web threat feeds.',
-        score: '99.98% Model Precision',
+        reason: 'Calibrated using explainable heuristic security indicators.',
+        score: 'Calibrated Risk Index',
       },
     },
     {

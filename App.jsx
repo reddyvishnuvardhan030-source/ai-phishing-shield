@@ -94,8 +94,8 @@ export default function App() {
       />
 
       <main className="relative z-10">
-        <Hero onOpenDemoModal={handleOpenDemoModal} />
-        <StatsSection />
+        <Hero onOpenDemoModal={handleOpenDemoModal} onSaveScanToHistory={handleSaveScanToHistory} onOpenHistoryModal={() => setHistoryModalOpen(true)} />
+        <StatsSection scanHistory={scanHistory} />
         <AIAgentSection />
         <ServicesSection />
         <HowItWorksSection />
@@ -119,7 +119,7 @@ export default function App() {
 
         <ArchitectureFlowSection />
         <FeaturesSection />
-        <LiveDashboardDemo />
+        <LiveDashboardDemo scanHistory={scanHistory} />
         <APIDeveloperSection />
       </main>
 

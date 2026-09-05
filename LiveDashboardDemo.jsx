@@ -63,55 +63,25 @@ const LIVE_LOGS_INITIAL = [
   },
 ];
 
-export default function LiveDashboardDemo() {
-  const [logs, setLogs] = useState(LIVE_LOGS_INITIAL);
+export default function LiveDashboardDemo({ scanHistory = [] }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [telemetry, setTelemetry] = useState({
-    totalScansToday: 18942,
-    threatsBlockedToday: 4812,
-    avgScanLatencyMs: 14,
-    zeroDayBreachRate: '0.00%',
-    vectorBreakdown: { URL: 45, Email: 30, QR: 15, Text: 10 }
-  });
 
-  const fetchTelemetry = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/api/v1/dashboard/stats');
-      if (response.ok) {
-        const data = await response.json();
-        setTelemetry({
-          totalScansToday: data.total_scans_today || 18942,
-          threatsBlockedToday: data.threats_blocked_today || 4812,
-          avgScanLatencyMs: data.avg_scan_latency_ms || 14,
-          zeroDayBreachRate: data.zero_day_breach_rate || '0.00%',
-          vectorBreakdown: { URL: 45, Email: 30, QR: 15, Text: 10 }
-        });
-      }
-    } catch (e) {
-      // Backend offline fallback
-    }
-  };
-
-  useEffect(() => {
-    fetchTelemetry();
-  }, []);
+  const totalScans = scanHistory.length;
+  const phishingCount = scanHistory.filter(
+    (s) => s.status === 'DANGEROUS' || (s.risk_score !== undefined && s.risk_score >= 70) || (s.score !== undefined && s.score >= 70)
+  ).length;
+  const suspiciousCount = scanHistory.filter(
+    (s) => s.status === 'SUSPICIOUS' || (s.risk_score !== undefined && s.risk_score >= 35 && s.risk_score < 70) || (s.score !== undefined && s.score >= 35 && s.score < 70)
+  ).length;
+  const safeCount = scanHistory.filter(
+    (s) => s.status === 'SAFE' || (s.risk_score !== undefined && s.risk_score < 35) || (s.score !== undefined && s.score < 35)
+  ).length;
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    fetchTelemetry();
     setTimeout(() => {
       setIsRefreshing(false);
-      const newLog = {
-        id: `LOG-${Math.floor(892 + Math.random() * 50)}`,
-        time: new Date().toLocaleTimeString('en-US', { hour12: false }),
-        vector: 'Phishing URL',
-        target: `http://login-auth-pass-${Math.floor(Math.random() * 999)}.xyz/verify`,
-        score: Math.floor(88 + Math.random() * 11),
-        action: 'BLOCKED',
-        icon: Globe,
-      };
-      setLogs((prev) => [newLog, ...prev.slice(0, 4)]);
-    }, 600);
+    }, 500);
   };
 
   return (
@@ -121,7 +91,7 @@ export default function LiveDashboardDemo() {
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="badge-neon mb-3">
             <Activity className="w-3.5 h-3.5" />
-            <span>BACKEND SERVICE #11: TELEMETRY DASHBOARD</span>
+            <span>REAL-TIME THREAT TELEMETRY DASHBOARD</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight font-[Space_Grotesk]">
             Interactive <span className="text-gradient-neon">Security Dashboard</span>
@@ -139,7 +109,7 @@ export default function LiveDashboardDemo() {
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
                 <span className="font-mono text-xs font-bold text-white uppercase tracking-wider">
-                  AI SHIELD TELEMETRY // TENANT: ACME-ENTERPRISE-GLOBAL
+                  AI SHIELD TELEMETRY // REAL-TIME OPS STREAM
                 </span>
               </div>
             </div>
@@ -162,35 +132,35 @@ export default function LiveDashboardDemo() {
           {/* Key Metrics Bar */}
           <div className="grid grid-cols-2 lg:grid-cols-4 border-b border-slate-800 bg-slate-950/60 divide-x divide-y lg:divide-y-0 divide-slate-800">
             <div className="p-5">
-              <div className="text-xs font-mono text-slate-400 uppercase">Total Scans Today</div>
+              <div className="text-xs font-mono text-slate-400 uppercase">Total Scans Executed</div>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-cyan-400 mt-1">
-                {telemetry.totalScansToday.toLocaleString()}
+                {totalScans.toLocaleString()}
               </div>
-              <div className="text-[11px] text-emerald-400 font-mono mt-1">↑ +18% vs yesterday</div>
+              <div className="text-[11px] text-emerald-400 font-mono mt-1">Real-time scan logs</div>
             </div>
 
             <div className="p-5">
-              <div className="text-xs font-mono text-slate-400 uppercase">Threats Blocked</div>
+              <div className="text-xs font-mono text-slate-400 uppercase">Phishing Threats Flagged</div>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-rose-400 mt-1">
-                {telemetry.threatsBlockedToday.toLocaleString()}
+                {phishingCount.toLocaleString()}
               </div>
-              <div className="text-[11px] text-cyan-400 font-mono mt-1">100% Mitigation SLA</div>
+              <div className="text-[11px] text-rose-400 font-mono mt-1">High-Risk (Score ≥70)</div>
             </div>
 
             <div className="p-5">
-              <div className="text-xs font-mono text-slate-400 uppercase">Avg Inspection Speed</div>
-              <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-400 mt-1">
-                {telemetry.avgScanLatencyMs} ms
+              <div className="text-xs font-mono text-slate-400 uppercase">Suspicious Flagged</div>
+              <div className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-400 mt-1">
+                {suspiciousCount.toLocaleString()}
               </div>
-              <div className="text-[11px] text-slate-400 font-mono mt-1">Sub-50ms SLA</div>
+              <div className="text-[11px] text-amber-400 font-mono mt-1">Medium Risk (Score 35-69)</div>
             </div>
 
             <div className="p-5">
-              <div className="text-xs font-mono text-slate-400 uppercase">Zero-Day Breach Rate</div>
+              <div className="text-xs font-mono text-slate-400 uppercase">Safe URLs Verified</div>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-400 mt-1">
-                {telemetry.zeroDayBreachRate}
+                {safeCount.toLocaleString()}
               </div>
-              <div className="text-[11px] text-emerald-400 font-mono mt-1">Zero Breaches Logged</div>
+              <div className="text-[11px] text-emerald-400 font-mono mt-1">Clean (Score &lt;35)</div>
             </div>
           </div>
 
@@ -260,27 +230,36 @@ export default function LiveDashboardDemo() {
               </div>
 
               <div className="space-y-3">
-                {logs.map((log) => {
-                  const Icon = log.icon;
+                {(scanHistory && scanHistory.length > 0 ? scanHistory.slice(0, 5) : LIVE_LOGS_INITIAL).map((log, idx) => {
+                  const logId = log.id || `LOG-${idx}`;
+                  const logCategory = log.input_category || log.category || log.inputCategory || 'URL';
+                  const logScore = log.risk_score !== undefined ? log.risk_score : log.score !== undefined ? log.score : 50;
+                  const isDangerous = log.status === 'DANGEROUS' || logScore >= 70;
+                  const isSuspicious = log.status === 'SUSPICIOUS' || (logScore >= 35 && logScore < 70);
+                  const logStatement = log.input_type_statement || log.inputTypeStatement || log.statement || log.target || 'Target Vector';
+                  const logTime = log.timestamp ? (log.timestamp.split(' ')[1] || log.timestamp) : (log.time || '12:00:00');
+                  
                   return (
                     <div
-                      key={log.id}
+                      key={logId}
                       className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-rose-950/40 border border-rose-500/30 flex items-center justify-center shrink-0">
-                          <Icon className="w-5 h-5 text-rose-400" />
+                        <div className={`w-10 h-10 rounded-lg border flex items-center justify-center shrink-0 ${
+                          isDangerous ? 'bg-rose-950/40 border-rose-500/30 text-rose-400' : isSuspicious ? 'bg-amber-950/40 border-amber-500/30 text-amber-400' : 'bg-emerald-950/40 border-emerald-500/30 text-emerald-400'
+                        }`}>
+                          <Globe className="w-5 h-5" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono font-bold text-cyan-400">{log.id}</span>
-                            <span className="text-xs font-mono text-slate-500">[{log.time}]</span>
+                            <span className="text-xs font-mono font-bold text-cyan-400">{logId}</span>
+                            <span className="text-xs font-mono text-slate-500">[{logTime}]</span>
                             <span className="text-xs font-mono text-slate-300 font-medium px-2 py-0.5 rounded bg-slate-800">
-                              {log.vector}
+                              {logCategory}
                             </span>
                           </div>
                           <p className="text-xs sm:text-sm font-mono text-slate-200 mt-1 truncate max-w-xs sm:max-w-md">
-                            {log.target}
+                            {logStatement}
                           </p>
                         </div>
                       </div>
@@ -288,11 +267,15 @@ export default function LiveDashboardDemo() {
                       <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 border-slate-800 pt-2 sm:pt-0">
                         <div className="text-right">
                           <div className="text-[9px] font-mono text-slate-400">RISK INDEX</div>
-                          <div className="text-sm font-mono font-bold text-rose-400">{log.score}/100</div>
+                          <div className={`text-sm font-mono font-bold ${
+                            isDangerous ? 'text-rose-400' : isSuspicious ? 'text-amber-400' : 'text-emerald-400'
+                          }`}>{logScore}/100</div>
                         </div>
 
-                        <span className="badge-threat font-bold text-xs py-1 px-3">
-                          {log.action}
+                        <span className={`font-bold text-xs py-1 px-3 rounded-full border ${
+                          isDangerous ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : isSuspicious ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                        }`}>
+                          {isDangerous ? 'BLOCKED' : isSuspicious ? 'FLAGGED' : 'VERIFIED'}
                         </span>
                       </div>
                     </div>

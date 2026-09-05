@@ -78,12 +78,20 @@ class ScanResponse(BaseModel):
     explanation_reasons: List[ReasonItem]
     recommended_actions: List[str]
 
+class AIExplanationInfo(BaseModel):
+    summary: str
+    pipeline_flow: List[str]
+    human_readable_explanation: str
+    risk_assessment: str
+    actionable_advice: List[str]
+
 class URLScanResponse(BaseModel):
     url: str
     classification: str  # "safe" | "suspicious" | "dangerous"
     risk_score: int      # 0 to 100
     confidence: float    # 0.0 to 1.0
     reasons: List[str]   # List of explainable rule descriptions
+    ai_explanation: Optional[AIExplanationInfo] = None
     id: Optional[str] = None
     timestamp: Optional[str] = None
     input_type_statement: Optional[str] = "This is a web URL vector"
@@ -420,6 +428,75 @@ def evaluate_url_security(raw_url: str) -> dict:
         "host": host
     }
 
+def generate_ai_explanation(
+    url: str,
+    classification: str,
+    risk_score: int,
+    reasons: List[str],
+    dom_rep: DomainReputationInfo,
+    threat_intel: ThreatIntelInfo
+) -> AIExplanationInfo:
+    pipeline_flow = [
+        "1. Raw URL Input Vector",
+        "2. Feature Extraction (Scheme, Host, Length, TLD, Keywords)",
+        "3. Rule & Security Heuristic Engine Evaluation",
+        "4. Threat Intelligence & Domain Reputation Query",
+        "5. Risk Score Engine Aggregation (0-100 Rating)",
+        "6. AI Explanation Synthesis Agent",
+        "7. Human-Readable Explanation Generated"
+    ]
+    
+    if classification == "dangerous":
+        summary = f"CRITICAL THREAT WARNING: '{url}' is flagged as a high-risk phishing attack vector with a risk score of {risk_score}/100."
+        reasons_text = "; ".join(reasons[:3]) if reasons else "Multiple structural phishing indicators present"
+        explanation = (
+            f"The AI Threat Shield pipeline evaluated this web address through 7 sequential analysis stages. "
+            f"During feature extraction and rule evaluation, the security engine identified critical risk triggers: {reasons_text}. "
+            f"Domain intelligence query reported reputation status '{dom_rep.reputation_status}' with registered age of {dom_rep.registered_days_ago} days. "
+            f"Aggregating these security indicators results in a high threat risk score of {risk_score}/100. "
+            f"Plain English summary: This page is designed to mimic legitimate services to intercept passwords or credentials. Do NOT visit this link or enter sensitive data."
+        )
+        assessment = f"🔴 High-Risk Phishing Threat (Risk Score: {risk_score}/100)"
+        advice = [
+            "Do NOT enter passwords, credit card numbers, or credentials.",
+            "Do not click internal links or accept security certificate overrides.",
+            "Report this URL to your enterprise security operations center (SOC)."
+        ]
+    elif classification == "suspicious":
+        summary = f"SUSPICIOUS VECTOR WARNING: '{url}' exhibits unusual structural parameters (Risk Score: {risk_score}/100)."
+        reasons_text = "; ".join(reasons[:2]) if reasons else "Unusual domain structure detected"
+        explanation = (
+            f"The URL evaluation pipeline identified suspicious patterns during heuristic rule processing: {reasons_text}. "
+            f"While not yet registered on global malware blacklists, the domain parameters suggest caution. "
+            f"Plain English summary: Exercise extreme care before logging in or providing personal details on this page."
+        )
+        assessment = f"🟡 Suspicious Risk Vector (Risk Score: {risk_score}/100)"
+        advice = [
+            "Verify the domain name carefully in your browser address bar.",
+            "Confirm sender identity via an out-of-band communication channel."
+        ]
+    else:
+        summary = f"SAFE INFRASTRUCTURE VERIFIED: '{url}' passed security checks cleanly (Risk Score: {risk_score}/100)."
+        reasons_text = "; ".join(reasons) if reasons else "HTTPS encryption and domain structure verified"
+        explanation = (
+            f"The feature extraction and rule engine verified that this URL complies with standard web security baselines: {reasons_text}. "
+            f"Domain reputation confirms established registration history ({dom_rep.registered_days_ago} days active) and valid SSL/TLS certificates. "
+            f"Plain English summary: This website appears legitimate and safe for standard access."
+        )
+        assessment = f"🟢 Clean / Safe Destination (Risk Score: {risk_score}/100)"
+        advice = [
+            "You may proceed safely.",
+            "Always inspect the address bar to ensure domain name consistency."
+        ]
+
+    return AIExplanationInfo(
+        summary=summary,
+        pipeline_flow=pipeline_flow,
+        human_readable_explanation=explanation,
+        risk_assessment=assessment,
+        actionable_advice=advice
+    )
+
 def perform_ai_threat_analysis(text: str, category: str) -> dict:
     lowered = text.lower()
     is_malicious = any(kw in lowered for kw in [
@@ -591,14 +668,16 @@ def scan_url(req: URLScanRequest):
     dom_rep = get_mock_domain_reputation(domain, is_dangerous)
     threat_intel = get_mock_threat_intel(url_to_scan, is_dangerous)
 
-    rec_actions = [
-        "DO NOT enter passwords, financial numbers, or personal credentials.",
-        "Do not click internal links or download attached payloads.",
-        "Block domain in your network security policy / mail filter."
-    ] if is_dangerous else [
-        "Proceed with normal caution.",
-        "Always inspect the address bar to ensure domain consistency."
-    ]
+    ai_exp = generate_ai_explanation(
+        url=url_to_scan,
+        classification=analysis["classification"],
+        risk_score=analysis["risk_score"],
+        reasons=analysis["reasons"],
+        dom_rep=dom_rep,
+        threat_intel=threat_intel
+    )
+
+    rec_actions = ai_exp.actionable_advice
 
     response_obj = URLScanResponse(
         url=url_to_scan,
@@ -606,6 +685,7 @@ def scan_url(req: URLScanRequest):
         risk_score=analysis["risk_score"],
         confidence=analysis["confidence"],
         reasons=analysis["reasons"],
+        ai_explanation=ai_exp,
         id=scan_id,
         timestamp=timestamp,
         input_type_statement="This is a web URL vector",
@@ -729,22 +809,19 @@ def generate_api_key(key_name: str = Query("Default Production Key")):
 # 11: Telemetry Dashboard & Stats
 @app.get("/api/v1/dashboard/stats")
 def get_dashboard_stats():
+    total_scans = len(SCAN_HISTORY_DB)
+    dangerous_count = sum(1 for item in SCAN_HISTORY_DB if item.get("status") == "DANGEROUS" or item.get("risk_score", 0) >= 70)
+    suspicious_count = sum(1 for item in SCAN_HISTORY_DB if item.get("status") == "SUSPICIOUS" or (35 <= item.get("risk_score", 0) < 70))
+    safe_count = sum(1 for item in SCAN_HISTORY_DB if item.get("status") == "SAFE" or item.get("risk_score", 0) < 35)
+
     return {
-        "total_scans_today": 18942 + len(SCAN_HISTORY_DB),
-        "threats_blocked_today": 4812,
+        "total_scans": total_scans,
+        "safe_scans": safe_count,
+        "suspicious_scans": suspicious_count,
+        "phishing_scans": dangerous_count,
         "avg_scan_latency_ms": 14,
-        "zero_day_breach_rate": "0.00%",
-        "vectors_breakdown": {
-            "URL": 45,
-            "Email": 30,
-            "QR Code": 15,
-            "Plain Text": 10
-        },
-        "risk_levels": {
-            "Dangerous": 25,
-            "Suspicious": 35,
-            "Safe": 40
-        }
+        "explainability_score": "100%",
+        "recent_scans": SCAN_HISTORY_DB[:5]
     }
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ShieldCheck, ChevronRight, Play, Sparkles, CheckCircle2, Lock, Zap, Shield, Search, ArrowRight } from 'lucide-react';
 import InteractiveScanner from './InteractiveScanner.jsx';
 
-export default function Hero({ onOpenDemoModal }) {
+export default function Hero({ onOpenDemoModal, onSaveScanToHistory, onOpenHistoryModal }) {
   const [heroInput, setHeroInput] = useState('https://paypal-sercuity-login.xyz');
 
   const scrollToScanner = (customUrl) => {
@@ -97,7 +97,7 @@ export default function Hero({ onOpenDemoModal }) {
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-cyan-400" />
-              <span>SOC2 Type II & ISO27001</span>
+              <span>Explainable Heuristics Engine</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-cyan-400" />
@@ -108,7 +108,7 @@ export default function Hero({ onOpenDemoModal }) {
 
         {/* Live Interactive Scanner Embedded Demo */}
         <div className="mt-12">
-          <InteractiveScanner />
+          <InteractiveScanner onSaveScanToHistory={onSaveScanToHistory} onOpenHistoryModal={onOpenHistoryModal} />
         </div>
       </div>
     </section>

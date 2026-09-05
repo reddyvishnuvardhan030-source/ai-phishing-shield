@@ -1,27 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Globe, ShieldAlert, CheckCircle2, Zap, TrendingUp, Activity } from 'lucide-react';
 
-export default function StatsSection() {
-  const [urlCount, setUrlCount] = useState(14850000);
-  const [threatCount, setThreatCount] = useState(1890500);
-
-  // Live counter animation increment effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setUrlCount((prev) => prev + Math.floor(Math.random() * 5) + 1);
-      if (Math.random() > 0.6) {
-        setThreatCount((prev) => prev + 1);
-      }
-    }, 2500);
-    return () => clearInterval(interval);
-  }, []);
+export default function StatsSection({ scanHistory = [] }) {
+  const totalScans = scanHistory.length;
+  const threatsBlocked = scanHistory.filter(
+    (s) => s.status === 'DANGEROUS' || (s.risk_score !== undefined && s.risk_score >= 70) || (s.score !== undefined && s.score >= 70)
+  ).length;
+  const safeVerified = scanHistory.filter(
+    (s) => s.status === 'SAFE' || (s.risk_score !== undefined && s.risk_score < 35) || (s.score !== undefined && s.score < 35)
+  ).length;
 
   const stats = [
     {
-      id: 'urls-scanned',
-      label: 'URLs Scanned',
-      value: urlCount.toLocaleString() + '+',
-      subtitle: 'Real-time telemetry feeds',
+      id: 'total-scans',
+      label: 'Total Scans Executed',
+      value: totalScans.toLocaleString(),
+      subtitle: 'Recorded in active session',
       icon: Globe,
       color: 'text-cyan-400',
       borderColor: 'border-cyan-500/30',
@@ -29,19 +23,19 @@ export default function StatsSection() {
     },
     {
       id: 'threats-blocked',
-      label: 'Threats Blocked',
-      value: threatCount.toLocaleString() + '+',
-      subtitle: 'Zero-day phishing attacks',
+      label: 'Phishing Threats Flagged',
+      value: threatsBlocked.toLocaleString(),
+      subtitle: 'High-risk attack vectors',
       icon: ShieldAlert,
       color: 'text-rose-400',
       borderColor: 'border-rose-500/30',
       bgGlow: 'shadow-[0_0_25px_rgba(244,63,94,0.15)]',
     },
     {
-      id: 'detection-accuracy',
-      label: 'Detection Accuracy',
-      value: '99.98%',
-      subtitle: 'SOC & ISO27001 verified',
+      id: 'safe-verified',
+      label: 'Safe URLs Verified',
+      value: safeVerified.toLocaleString(),
+      subtitle: 'Passed security checks',
       icon: CheckCircle2,
       color: 'text-emerald-400',
       borderColor: 'border-emerald-500/30',
@@ -49,9 +43,9 @@ export default function StatsSection() {
     },
     {
       id: 'avg-scan-time',
-      label: 'Average Scan Time',
+      label: 'Average Latency',
       value: '< 45ms',
-      subtitle: 'Ultra-low latency inference',
+      subtitle: 'Rule Engine SLA',
       icon: Zap,
       color: 'text-yellow-400',
       borderColor: 'border-yellow-500/30',
