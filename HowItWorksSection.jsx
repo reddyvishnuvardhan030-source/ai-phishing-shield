@@ -50,7 +50,7 @@ const STEPS_DATA = [
       'Explainable AI reasons in plain, clear English',
       'Categorized threat severity (CRITICAL PHISHING RISK)',
     ],
-    codeSnippet: `THREAT SCORE GENERATED\n-------------------------\nFinal Risk Index: 96 / 100 [CRITICAL]\nCategory: Typosquatting Credential Harvester\nConfidence Level: 99.98%`,
+    codeSnippet: `THREAT SCORE GENERATED\n-------------------------\nFinal Risk Index: 96 / 100 [CRITICAL]\nCategory: Typosquatting Credential Harvester\nConfidence Index: High (96%)`,
   },
   {
     step: '04',

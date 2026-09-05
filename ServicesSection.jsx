@@ -6,10 +6,11 @@ import {
   Brain,
   Database,
   Zap,
+  Shield,
+  Activity,
   ArrowRight,
   CheckCircle,
-  X,
-  Shield
+  X
 } from 'lucide-react';
 
 const SERVICES_DATA = [
@@ -29,16 +30,16 @@ const SERVICES_DATA = [
   },
   {
     id: 'email-scanner',
-    title: '📧 Email Scanner',
+    title: '📧 Email Scanner (SIH26106)',
     icon: Mail,
-    shortDesc: 'Detect phishing emails by examining sender identity, headers, links, attachments, and suspicious language.',
-    fullDesc: 'Examines email headers (SPF, DKIM, DMARC), sender identity spoofing, coercive language patterns, malicious attachments (.exe, .vbs, .scr), and embedded hyperlinks to stop Executive BEC and phishing attacks.',
+    shortDesc: 'Detect email phishing, sender identity spoofing, link anchor mismatches, and malicious attachments.',
+    fullDesc: 'Inspects email headers (SPF, DKIM, DMARC), display-name spoofing, deceptive link anchor text mismatches, coercive language patterns, and malicious attachment payloads (.pdf.exe, .vbs, .docm) under SIH Problem Statement SIH26106.',
     metrics: 'Full Header & Payload Scan',
-    badge: 'INLINE MAIL DEFENSE',
+    badge: 'SIH26106 MAIL DEFENSE',
     features: [
-      'Sender Identity & VIP Spoof Protection',
-      'Natural Language Coercion Scoring',
-      'Attachment & Link Payload Inspection'
+      'Sender Identity & Display Spoof Check',
+      'Deceptive Link Anchor Mismatch Engine',
+      'Attachment & Double-Extension Inspection'
     ],
   },
   {
@@ -57,15 +58,15 @@ const SERVICES_DATA = [
   },
   {
     id: 'ai-threat-analysis',
-    title: '🧠 AI Threat Analysis',
+    title: '🧠 AI Threat Explanation',
     icon: Brain,
-    shortDesc: 'Explain why a website or email is flagged with an AI-generated security report.',
-    fullDesc: 'Generates explainable AI security assessments. Converts complex threat metrics into clear, simple English risk explanations detailing exact evidence and recommended safe actions.',
-    metrics: '0-100 Risk Score Engine',
+    shortDesc: 'Explain why a website or email is flagged with an AI-generated natural language security report.',
+    fullDesc: 'Generates explainable AI security assessments. Converts complex threat metrics into clear, simple English risk explanations detailing exact technical evidence and recommended safe actions.',
+    metrics: 'Explainable Risk Engine',
     badge: 'EXPLAINABLE AI (XAI)',
     features: [
       'Clear English Risk Explanations',
-      'Zero-Day Threat Pattern Detection',
+      'Identifiable Threat Detection Factors',
       'Categorized Threat Severity Breakdown'
     ],
   },
@@ -85,9 +86,9 @@ const SERVICES_DATA = [
   },
   {
     id: 'live-threat-detection',
-    title: '⚡ Live Threat Detection',
+    title: '⚡ Threat Intelligence Feeds',
     icon: Zap,
-    shortDesc: 'Monitor URLs against continuously updated phishing and malware indicators.',
+    shortDesc: 'Cross-reference URLs against continuously updated phishing and malware indicators.',
     fullDesc: 'Continuously cross-references incoming web links and domains against real-time phishing and malware indicators (PhishTank, VirusTotal, OpenPhish) to stop zero-day attacks instantaneously.',
     metrics: 'Continuous Intel Feed',
     badge: 'REAL-TIME INTEL',
@@ -95,6 +96,34 @@ const SERVICES_DATA = [
       'PhishTank & VirusTotal Feed Sync',
       'Blacklisted IP & Domain Interception',
       'Automated Zero-Day Threat Mitigation'
+    ],
+  },
+  {
+    id: 'risk-score-engine',
+    title: '🎯 Risk Score Engine',
+    icon: Shield,
+    shortDesc: 'Calculate a calibrated 0-100 Threat Index with clear risk severity classification.',
+    fullDesc: 'Aggregates weighted security signals into a deterministic 0-100 Risk Score (🟢 Safe: 0-29, 🟡 Suspicious: 30-59, 🔴 High Risk: 60-100) with calibrated confidence levels.',
+    metrics: '0–100 Risk Rating',
+    badge: 'DETERMINISTIC RATING',
+    features: [
+      'Calibrated 0 to 100 Risk Scale',
+      'Multi-Factor Severity Weighting',
+      'Standardized Threat Verdicts'
+    ],
+  },
+  {
+    id: 'telemetry-dashboard',
+    title: '📊 Dynamic Telemetry & Logs',
+    icon: Activity,
+    shortDesc: 'Track live operational metrics and exportable historical scan logs for forensic auditing.',
+    fullDesc: 'Provides a single-pane operational view showing total scans, phishing detections, suspicious vectors, clean destinations, and exportable JSON scan history for security audit trails.',
+    metrics: 'Live Telemetry & Logs',
+    badge: 'FORENSIC AUDITING',
+    features: [
+      'Live Scan Metrics Stream',
+      'Exportable JSON Scan History',
+      'Vector-Based Historical Filtering'
     ],
   },
 ];
@@ -119,7 +148,7 @@ export default function ServicesSection() {
             Comprehensive <span className="text-gradient-neon">AI Security Services</span>
           </h2>
           <p className="mt-4 text-slate-300 text-base sm:text-lg">
-            Six specialized AI threat detection modules engineered to identify, analyze, and neutralize phishing attempts across all digital vectors.
+            Eight specialized AI threat detection modules engineered to identify, analyze, and neutralize phishing attempts across all digital vectors.
           </p>
         </div>
 

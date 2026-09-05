@@ -101,7 +101,7 @@ export default function Hero({ onOpenDemoModal, onSaveScanToHistory, onOpenHisto
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-cyan-400" />
-              <span>99.98% Accuracy</span>
+              <span>Multi-Factor Verification</span>
             </div>
           </div>
         </div>

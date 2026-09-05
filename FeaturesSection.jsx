@@ -38,7 +38,7 @@ const FEATURES_DATA = [
     title: 'Cloud-Based Security',
     subtitle: 'Zero infrastructure hassle',
     desc: 'Cloud-native architecture deploys seamlessly via API webhooks and DNS proxies in under 5 minutes without installing heavy endpoint software.',
-    badge: '100% CLOUD NATIVE',
+    badge: 'CLOUD NATIVE ARCHITECTURE',
   },
   {
     icon: LayoutDashboard,

@@ -1075,7 +1075,7 @@ def get_dashboard_stats():
         "suspicious_scans": suspicious_count,
         "phishing_scans": dangerous_count,
         "avg_scan_latency_ms": 14,
-        "explainability_score": "100%",
+        "explainable_scoring": "Every risk assessment is supported by identifiable detection factors.",
         "recent_scans": SCAN_HISTORY_DB[:5]
     }
 

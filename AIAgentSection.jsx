@@ -62,7 +62,7 @@ export default function AIAgentSection() {
       interactiveDemo: {
         type: 'Engine Inspection',
         input: 'Multi-Vector Input Analysis',
-        reason: '5 / 5 Detection Engines synchronized • 0.01% False Positive Rate',
+        reason: '5 / 5 Detection Engines synchronized • Multi-Factor Heuristic Verification',
         score: '5 Parallel Engines Active',
       },
     },
