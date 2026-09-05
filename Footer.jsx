@@ -99,19 +99,19 @@ export default function Footer({ onOpenDemoModal }) {
             </ul>
           </div>
 
-          {/* Compliance & Contact */}
+          {/* Privacy & Contact */}
           <div className="space-y-3">
             <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">
-              COMPLIANCE & CONTACT
+              PRIVACY & CONTACT
             </h4>
-            <div className="space-y-2 text-xs font-mono text-slate-400">
+            <div className="space-y-2 text-xs font-mono">
               <div className="p-2 rounded bg-slate-900 border border-slate-800 flex items-center gap-2">
                 <Lock className="w-3.5 h-3.5 text-cyan-400" />
-                <span>SOC2 TYPE II AUDITED</span>
+                <span>TRANSPARENT RULE ENGINE</span>
               </div>
               <div className="p-2 rounded bg-slate-900 border border-slate-800 flex items-center gap-2">
                 <Lock className="w-3.5 h-3.5 text-cyan-400" />
-                <span>ISO 27001 CERTIFIED</span>
+                <span>EXPLAINABLE ANALYSIS</span>
               </div>
               <div className="p-2 rounded bg-slate-900 border border-slate-800 flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-cyan-400" />
@@ -124,44 +124,35 @@ export default function Footer({ onOpenDemoModal }) {
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 font-mono">
           <div>
-            © {new Date().getFullYear()} AI Phishing Shield Inc. All rights reserved. Real-Time Cyber Protection.
+            © {new Date().getFullYear()} AI Phishing Shield. All rights reserved. AI-Powered Cyber Protection.
           </div>
 
           <div className="flex items-center gap-6">
-            <button
-              onClick={() => setModalContent('privacy')}
-              className="hover:text-cyan-400 transition-colors underline underline-offset-4"
-            >
+            <button onClick={() => setModalType('privacy')} className="hover:text-cyan-400 transition-colors">
               Privacy Policy
             </button>
-            <button
-              onClick={() => setModalContent('terms')}
-              className="hover:text-cyan-400 transition-colors underline underline-offset-4"
-            >
+            <button onClick={() => setModalType('terms')} className="hover:text-cyan-400 transition-colors">
               Terms of Service
             </button>
-            <a href="https://github.com" target="_blank" rel="noreferrer" className="hover:text-cyan-400 transition-colors">
-              GitHub
-            </a>
           </div>
         </div>
       </div>
 
-      {/* Privacy Policy & Terms Modal */}
-      {modalContent && (
+      {/* Policy Modal */}
+      {modalType && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md fade-in">
-          <div className="glass-panel max-w-2xl w-full p-6 sm:p-8 relative border-cyan-500/40 shadow-[0_0_50px_rgba(0,240,255,0.25)] bg-[#070d1e]/95 max-h-[85vh] overflow-y-auto">
+          <div className="glass-panel w-full max-w-2xl p-6 sm:p-8 bg-[#070d1e]/95 border-cyan-500/40 rounded-2xl relative shadow-[0_0_50px_rgba(0,240,255,0.25)]">
             <button
-              onClick={() => setModalContent(null)}
-              className="absolute top-5 right-5 p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+              onClick={() => setModalType(null)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
             >
               <X className="w-5 h-5" />
             </button>
 
-            {modalContent === 'privacy' ? (
+            {modalType === 'privacy' ? (
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <Shield className="w-7 h-7 text-cyan-400" />
+                  <ShieldCheck className="w-7 h-7 text-cyan-400" />
                   <h3 className="text-2xl font-bold text-white font-[Space_Grotesk]">
                     Privacy Policy
                   </h3>
@@ -174,7 +165,7 @@ export default function Footer({ onOpenDemoModal }) {
                   <p>All scanned URLs, headers, and QR payloads are processed in encrypted memory buffers and purged within 24 hours. We do not sell or monetize threat logs.</p>
                   
                   <h4 className="text-sm font-bold text-cyan-400">2. Zero-Trust Data Isolation</h4>
-                  <p>Enterprise customer data is isolated in dedicated SOC2 Type II compliant vaults with TLS 1.3 encryption in transit and AES-256 at rest.</p>
+                  <p>Enterprise customer data is processed in isolated security environments with TLS 1.3 encryption in transit and AES-256 at rest.</p>
 
                   <h4 className="text-sm font-bold text-cyan-400">3. Contact</h4>
                   <p>For data privacy requests or DPO contact: <strong className="text-cyan-300">contact@aiphishingshield.com</strong></p>
@@ -195,8 +186,8 @@ export default function Footer({ onOpenDemoModal }) {
                   <h4 className="text-sm font-bold text-cyan-400">1. Acceptable Use Policy</h4>
                   <p>Users may only scan URLs, emails, and assets for legitimate security verification. Reverse engineering our neural weight models is strictly prohibited.</p>
                   
-                  <h4 className="text-sm font-bold text-cyan-400">2. Service Level SLA</h4>
-                  <p>Enterprise plans include a 99.99% operational uptime SLA with sub-50ms threat inspection guarantees.</p>
+                  <h4 className="text-sm font-bold text-cyan-400">2. Performance & Speed</h4>
+                  <p>Designed for high-efficiency sub-50ms threat inspection.</p>
 
                   <h4 className="text-sm font-bold text-cyan-400">3. Inquiries</h4>
                   <p>Legal & compliance inquiries: <strong className="text-cyan-300">contact@aiphishingshield.com</strong></p>

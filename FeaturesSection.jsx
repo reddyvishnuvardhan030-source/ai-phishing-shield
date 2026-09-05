@@ -24,7 +24,7 @@ const FEATURES_DATA = [
     title: 'Privacy First',
     subtitle: 'Zero data retention policy',
     desc: 'Engineered with local zero-knowledge parsing and memory-only analysis. Your sensitive emails, credentials, and business files are never stored or logged.',
-    badge: 'SOC2 PRIVACY SAFE',
+    badge: 'PRIVACY PRESERVING',
   },
   {
     icon: Clock,
@@ -50,9 +50,9 @@ const FEATURES_DATA = [
   {
     icon: ShieldCheck,
     title: 'Enterprise Security',
-    subtitle: 'Strict compliance standards',
-    desc: 'Full SOC2 Type II, ISO27001, HIPAA, and GDPR compliance with role-based access control (RBAC) and SAML / Okta SSO integration.',
-    badge: 'ISO27001 CERTIFIED',
+    subtitle: 'Strict security standards',
+    desc: 'Standardized API endpoints with transparent rule evaluation, role-based access control (RBAC), and enterprise API key management.',
+    badge: 'TRANSPARENT API',
   },
   {
     icon: FileText,
@@ -87,7 +87,7 @@ export default function FeaturesSection() {
             Engineered for <span className="text-gradient-neon">Uncompromising Security</span>
           </h2>
           <p className="mt-4 text-slate-300 text-base sm:text-lg">
-            Eight essential core features delivering bulletproof protection, seamless compliance, and zero productivity friction.
+            Eight essential core features delivering bulletproof protection, seamless threat detection, and zero productivity friction.
           </p>
         </div>
 
