@@ -23,8 +23,10 @@ import {
   Shield,
   Server,
   AlertOctagon,
-  ExternalLink
+  ExternalLink,
+  MapPin
 } from 'lucide-react';
+import { getGeoLocation } from '../utils/geolocation';
 
 const PRESET_SAMPLES = [
   {
@@ -409,11 +411,59 @@ export default function InteractiveScanner({ onSaveScanToHistory, onOpenHistoryM
   const [emailAttachment, setEmailAttachment] = useState(PRESET_SAMPLES[0].attachment);
   
   const [isScanning, setIsScanning] = useState(false);
+  const [isResolvingOrigin, setIsResolvingOrigin] = useState(false);
   const [scanStep, setScanStep] = useState(0);
   const [scanResult, setScanResult] = useState(null);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   const currentClassification = classifyInputType(inputValue);
+
+  const resolveTargetDomain = (tab, inputVal, senderVal, resultObj) => {
+    if (resultObj?.domainReputation?.domain && resultObj.domainReputation.domain !== 'scanned-domain.com' && resultObj.domainReputation.domain !== 'email-security-analyzer.org') {
+      return resultObj.domainReputation.domain;
+    }
+    if (tab === 'EMAIL' && senderVal && senderVal.includes('@')) {
+      return senderVal.split('@').pop().replace('>', '').trim();
+    }
+    let cleaned = (inputVal || '').trim();
+    if (cleaned.startsWith('http://') || cleaned.startsWith('https://')) {
+      try {
+        return new URL(cleaned).hostname;
+      } catch (e) {}
+    }
+    cleaned = cleaned.replace(/^https?:\/\//i, '').split('/')[0].split('?')[0].split('#')[0].split(':')[0];
+    if (cleaned.includes('@')) {
+      cleaned = cleaned.split('@').pop().trim();
+    }
+    return cleaned || 'google.com';
+  };
+
+  const finalizeWithGeolocation = async (rawResultObj) => {
+    setScanStep(5);
+    setIsResolvingOrigin(true);
+    const domainToLookup = resolveTargetDomain(activeVectorTab, inputValue, emailSender, rawResultObj);
+    
+    let geoData = { success: false, error: 'Geolocation unavailable' };
+    try {
+      if (domainToLookup) {
+        geoData = await getGeoLocation(domainToLookup);
+      }
+    } catch (err) {
+      console.warn('Geolocation lookup failed:', err);
+    }
+
+    const finalResult = {
+      ...rawResultObj,
+      geoLocation: geoData
+    };
+
+    setIsResolvingOrigin(false);
+    setIsScanning(false);
+    setScanResult(finalResult);
+    if (onSaveScanToHistory) {
+      onSaveScanToHistory(finalResult);
+    }
+  };
 
   const runAnalysis = async (inputToScan = inputValue) => {
     let payloadToScan = inputToScan;
@@ -424,6 +474,7 @@ export default function InteractiveScanner({ onSaveScanToHistory, onOpenHistoryM
     if (!payloadToScan.trim()) return;
 
     setIsScanning(true);
+    setIsResolvingOrigin(false);
     setScanResult(null);
     setScanStep(1);
     setSavedSuccess(false);
@@ -464,8 +515,7 @@ export default function InteractiveScanner({ onSaveScanToHistory, onOpenHistoryM
 
         if (response.ok) {
           const apiData = await response.json();
-          setIsScanning(false);
-          setScanResult({
+          const apiResultObj = {
             id: apiData.id || `SCAN-${Math.floor(1000 + Math.random() * 9000)}`,
             timestamp: apiData.timestamp || new Date().toISOString().replace('T', ' ').substring(0, 19),
             inputTypeStatement: apiData.input_type_statement || 'This is a web URL vector',
@@ -488,11 +538,9 @@ export default function InteractiveScanner({ onSaveScanToHistory, onOpenHistoryM
               : (apiData.reasons || []).map((r) => ({ title: 'Rule Triggered', details: typeof r === 'string' ? r : r.details, severity: 'MEDIUM' })),
             safeActions: apiData.recommended_actions || ['Proceed with caution.'],
             apiSource: 'FastAPI Backend Engine (http://localhost:8000)',
-          });
+          };
 
-          if (onSaveScanToHistory) {
-            onSaveScanToHistory(apiData);
-          }
+          await finalizeWithGeolocation(apiResultObj);
           return;
         }
       } catch (err) {
@@ -500,14 +548,9 @@ export default function InteractiveScanner({ onSaveScanToHistory, onOpenHistoryM
       }
 
       // Client AI Deterministic Heuristic Engine
-      setIsScanning(false);
-
       if (activeVectorTab === 'EMAIL') {
         const fallbackEmailResult = evaluateEmailSecurityClient(inputValue, emailSender, emailSubject, emailAttachment);
-        setScanResult(fallbackEmailResult);
-        if (onSaveScanToHistory) {
-          onSaveScanToHistory(fallbackEmailResult);
-        }
+        await finalizeWithGeolocation(fallbackEmailResult);
         return;
       }
 
@@ -764,10 +807,7 @@ export default function InteractiveScanner({ onSaveScanToHistory, onOpenHistoryM
         apiSource: 'Client-Side AI Agent Engine (Deterministic)',
       };
 
-      setScanResult(fallbackResult);
-      if (onSaveScanToHistory) {
-        onSaveScanToHistory(fallbackResult);
-      }
+      await finalizeWithGeolocation(fallbackResult);
     }, 1000);
   };
 
@@ -1043,18 +1083,22 @@ export default function InteractiveScanner({ onSaveScanToHistory, onOpenHistoryM
               <RefreshCw className="w-6 h-6 text-cyan-400 animate-spin" />
               <div>
                 <h4 className="text-sm font-semibold text-white font-mono">
-                  AGENT RUNNING 12-SERVICE THREAT DETECTION...
+                  {isResolvingOrigin ? 'RESOLVING ORIGIN INTELLIGENCE & GEOLOCATION...' : 'AGENT RUNNING 12-SERVICE THREAT DETECTION...'}
                 </h4>
-                <p className="text-xs text-slate-400">Inspecting URL structures, domain age, WHOIS, SSL TLS, DMARC/SPF, PhishTank feeds, and calculating 0-100 score</p>
+                <p className="text-xs text-slate-400">
+                  {isResolvingOrigin ? 'Resolving origin IP, country, region, city, ISP, and ASN via ip-api...' : 'Inspecting URL structures, domain age, WHOIS, SSL TLS, DMARC/SPF, PhishTank feeds, and calculating 0-100 score'}
+                </p>
               </div>
             </div>
-            <span className="text-xs font-mono text-cyan-400 font-bold">{scanStep * 25}%</span>
+            <span className="text-xs font-mono text-cyan-400 font-bold">
+              {isResolvingOrigin ? '100%' : `${Math.min(100, scanStep * 20)}%`}
+            </span>
           </div>
 
           <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-cyan-500/30">
             <div
               className="bg-gradient-to-r from-cyan-500 to-blue-600 h-full transition-all duration-300 shadow-[0_0_10px_#00f0ff]"
-              style={{ width: `${scanStep * 25}%` }}
+              style={{ width: isResolvingOrigin ? '100%' : `${Math.min(100, scanStep * 20)}%` }}
             />
           </div>
 
@@ -1074,6 +1118,14 @@ export default function InteractiveScanner({ onSaveScanToHistory, onOpenHistoryM
             <div className={`flex items-center gap-2 ${scanStep >= 4 ? 'text-cyan-300' : 'text-slate-600'}`}>
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Services #7 & #8: Risk Score (0-100) & AI Explanation Generation</span>
+            </div>
+            <div className={`flex items-center gap-2 ${isResolvingOrigin || scanStep >= 5 ? 'text-cyan-300 font-bold' : 'text-slate-600'}`}>
+              {isResolvingOrigin ? (
+                <RefreshCw className="w-3.5 h-3.5 text-cyan-400 animate-spin" />
+              ) : (
+                <CheckCircle2 className="w-3.5 h-3.5" />
+              )}
+              <span>Service #4: Origin Geolocation Lookup {isResolvingOrigin ? '(Resolving origin...)' : '(Completed)'}</span>
             </div>
           </div>
         </div>
@@ -1132,6 +1184,53 @@ export default function InteractiveScanner({ onSaveScanToHistory, onOpenHistoryM
                 Re-Scan
               </button>
             </div>
+          </div>
+
+          {/* ORIGIN INTELLIGENCE Section Card */}
+          <div className="p-4 rounded-xl bg-slate-900/90 border border-cyan-500/30 space-y-3">
+            <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2">
+              <div className="flex items-center gap-2 text-xs font-bold font-mono text-cyan-300 uppercase">
+                <MapPin className="w-4 h-4 text-cyan-400" />
+                <span>ORIGIN INTELLIGENCE</span>
+              </div>
+              <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${
+                scanResult.geoLocation?.success
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+              }`}>
+                {scanResult.geoLocation?.success ? 'ORIGIN RESOLVED' : 'GEO UNKNOWN'}
+              </span>
+            </div>
+
+            {scanResult.geoLocation?.success ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
+                <div className="p-3 rounded-lg bg-slate-950/80 border border-slate-800 space-y-1">
+                  <span className="text-slate-400 text-[11px] font-semibold">IP:</span>
+                  <div className="text-cyan-300 font-bold font-mono text-xs sm:text-sm truncate">
+                    {scanResult.geoLocation.ip}
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-lg bg-slate-950/80 border border-slate-800 space-y-1">
+                  <span className="text-slate-400 text-[11px] font-semibold">Location:</span>
+                  <div className="text-slate-100 font-bold text-xs truncate" title={scanResult.geoLocation.locationFormatted}>
+                    {scanResult.geoLocation.locationFormatted}
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-lg bg-slate-950/80 border border-slate-800 space-y-1">
+                  <span className="text-slate-400 text-[11px] font-semibold">ISP / ASN:</span>
+                  <div className="text-slate-200 font-semibold text-xs truncate" title={`${scanResult.geoLocation.isp} / ${scanResult.geoLocation.asn}`}>
+                    {scanResult.geoLocation.isp} / {scanResult.geoLocation.asn}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 rounded-lg bg-slate-950/80 border border-slate-800 text-xs font-mono text-amber-400 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>Geolocation unavailable</span>
+              </div>
+            )}
           </div>
 
           {/* SIH26106 Email Vector Header & Link Mismatch Feature Breakdown Card */}
