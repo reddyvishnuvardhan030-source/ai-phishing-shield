@@ -220,6 +220,20 @@ HIGH_RISK_KEYWORDS = [
     "passcode", "password", "validation", "wallet", "wire"
 ]
 
+def levenshtein_distance(a: str, b: str) -> int:
+    dp = [[0] * (len(b) + 1) for _ in range(len(a) + 1)]
+    for i in range(len(a) + 1):
+        dp[i][0] = i
+    for j in range(len(b) + 1):
+        dp[0][j] = j
+    for i in range(1, len(a) + 1):
+        for j in range(1, len(b) + 1):
+            if a[i - 1] == b[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1]
+            else:
+                dp[i][j] = 1 + min(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1])
+    return dp[len(a)][len(b)]
+
 def normalize_url(raw_url: str) -> str:
     cleaned = raw_url.strip().strip('"').strip("'")
     if not re.match(r'^https?://', cleaned, re.IGNORECASE):
@@ -266,8 +280,22 @@ def evaluate_url_security(raw_url: str) -> dict:
     detected_brands = [b for b in KNOWN_BRANDS if b in full_str]
     detected_keywords = [kw for kw in HIGH_RISK_KEYWORDS if kw in full_str]
     
+    # Levenshtein Edit-Distance Typosquatting Check
+    domain_tokens = [tok for tok in re.split(r'[-._]', host) if tok and tok != tld]
+    typosquat_detected = None
+    for tok in domain_tokens:
+        for brand in KNOWN_BRANDS:
+            if tok == brand:
+                continue
+            dist = levenshtein_distance(tok, brand)
+            if 0 < dist <= 2 and len(tok) >= len(brand) - 2:
+                typosquat_detected = (tok, brand, dist)
+                break
+        if typosquat_detected:
+            break
+
     # Specific typosquatting indicators
-    is_typosquatting = any(b in host for b in ["paypal-sercuity", "paypai", "auth-update", "chase-update", "fastpay"])
+    is_typosquatting = (typosquat_detected is not None) or any(b in host for b in ["paypal-sercuity", "paypai", "auth-update", "chase-update", "fastpay"])
     
     # Embedded URL / open redirect indicator
     has_embedded_url = "http:" in path or "https:" in path or "http:" in query or "https:" in query
@@ -343,6 +371,17 @@ def evaluate_url_security(raw_url: str) -> dict:
             title="Unusual Subdomain Nesting",
             details=f"Domain contains {len(domain_parts)} domain levels, spoofing legit brand structure.",
             severity="MEDIUM"
+        ))
+
+    # Levenshtein Typosquatting Rule
+    if typosquat_detected:
+        tok, brand, dist = typosquat_detected
+        risk_score += 40
+        rule_reasons.append(f"Domain component '{tok}' closely resembles brand '{brand}' (Levenshtein distance {dist}) — typosquatting homoglyph")
+        explanation_reasons.append(ReasonItem(
+            title="Levenshtein Typosquatting Homoglyph",
+            details=f"Domain token '{tok}' is {dist} character edit(s) away from official brand '{brand}' (Levenshtein distance {dist}).",
+            severity="HIGH"
         ))
 
     # Rule 7: Brand Impersonation & High-Risk Keywords
